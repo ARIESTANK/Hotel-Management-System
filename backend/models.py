@@ -104,8 +104,8 @@ class Bookings(models.Model):
 # Service that staff(houseKeeping has to do) table 
 class Services(models.Model):
     serviceID=models.AutoField(primary_key=True)
-    serviceType=[("Transportation",'T'),("Laundary","L"),("Maintainance","M"),("Special Requests"),("HouseKeeping","H")]
-    type=models.CharField(max_length=244,choices=serviceType)
+    serviceType=[("Transportation",'T'),("Laundary","L"),("Maintainance","M"),("Special Requests","Special"),("HouseKeeping","H")]
+    type=models.CharField(max_length=255,choices=serviceType)
     state=[("Pending","P"),("Accepted","A"),("Reject","R")]
     status=models.CharField(max_length=100,choices=state)
     stayID=models.ForeignKey(Stays,on_delete=models.CASCADE,db_column="stayID")
@@ -121,5 +121,56 @@ class Services(models.Model):
             'staffID':self.staff.staffID if self.staff else "",
             'create_at':self.created_at,
         })
+#  menu Items
+class Menus(models.Model):
+    menuID=models.AutoField(primary_key=True)
+    menuName=models.CharField(max_length=255,null=False)
+    description=models.TextField(null=False)
+    price=models.IntegerField(null=False)   
+    cookingTime=models.IntegerField(null=False)
+    created_at=models.DateTimeField(auto_now_add=True)
     
-class 
+    def __str__(self):
+        return json.dumps({
+            'menuID': self.menuID,
+            'menuName':self.menuName,
+            'description':self.description,
+            'price':self.price,
+            'cookingTime':self.cookingTime,
+            'created_at':self.created_at,
+        })
+# orders 
+class Orders(models.Model):
+    orderID=models.AutoField(primary_key=True)
+    menuItems=models.JSONField(default=list)
+    amount=models.IntegerField(null=False)
+    stayID=models.ForeignKey(Stays,on_delete=models.CASCADE)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return json.dumps({
+            'orderID':self.orderID,
+            'menuItems':self.menuItems,
+            'amount':self.amount,
+            'stayID':self.stay.stayID if self.stay else "",
+            'created_at':self.created_at,
+        })
+#
+class Transctions(models.Model):
+    transactionID=models.AutoField(primary_key=True)
+    totalAmount=models.IntegerField(null=False)
+    stayID=models.ForeignKey(Stays,on_delete=models.CASCADE)
+    Methods=[('Cash','C'),('Credit Card','Credit'),('Online Payment','Online')]
+    paymentMethod=models.CharField(max_length=100,choices=Methods)
+    created_at=models.DateTimeField(auto_now_add=True)
+    staffID=models.ForeignKey(Staffs,null=True,on_delete=models.CASCADE,db_column="staffID")
+
+    def __str__(self):
+        return json.dumps({
+            'transactionID':self.transactionID,
+            'totalAmount':self.totalAmount,
+            'stayID':self.stay.stayID if self.stay else "",
+            'staffID':self.staff.staffID if self.staff else "",
+            'paymentMethod':self.paymentMethod,
+            'created_at':self.created_at,
+        })
