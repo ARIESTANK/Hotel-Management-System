@@ -1,0 +1,57 @@
+.test{
+    color: red;
+}
+ .navbar-brand span {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+      color: #dbeafe; /* light blue */
+    }
+
+    .profile-img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      border: 2px solid white;
+      object-fit: cover;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: red;
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 50%;
+    }
+.profileDiv{
+  margin: auto;
+  -webkit-box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86); 
+    box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+  width: 70%;
+  height: 70%;
+  /* border:2px solid black; */
+}
+.profileImage{
+  border-radius: 100px;
+}
+.w-40{
+  width:40% !important;
+}
+.changePassword{
+  width:50%;
+  padding-right: 9%;
+}
+.changePassword button{
+  width:100%;
+  float: right;
+}
