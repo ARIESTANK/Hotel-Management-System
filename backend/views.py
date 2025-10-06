@@ -9,6 +9,9 @@ from rest_framework.views import APIView
 
 # Create your views here.
 
+#login page 
+def loginPage(request):
+    return render(request,'login.html')
 #home page route
 def home(request):
     return render(request, "home.html")
@@ -27,8 +30,9 @@ def staffList(request):
 #staff Profile ROute
 def staffProfile(request):
     return render(request,"staffProfile.html")
-
-
+#admin Dashboard
+def dashboard(request):
+    return render(request,"dashboard.html")
 
 
 
@@ -39,3 +43,9 @@ def css_file(request):
         css_route=css_file.read()
     return HttpResponse(css_route,content_type="text/css")
 #api
+
+
+#functions
+
+def logout(request):
+    return redirect('home')

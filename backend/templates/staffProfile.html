@@ -1,68 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% load static %}
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>My Django Project</title>
-   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-   <link rel="stylesheet" href="{% url 'css_file' %}">
+  <meta charset="UTF-8">
+  <title>Staff Profile - Hotel Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{% url 'css_file' %}">
+  <!-- ✅ Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f5f7fa;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    
+  </style>
 </head>
 <body>
-    <div class="profileDiv  mt-5">
-        <div class="d-flex justify-content-around mt-5 p-5 ">
-            <img class="profileImage" src="data:image/jpeg;base64,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" alt="profile">
-            <div class="card shadow-sm w-50 border-0" >
-                <div class="card-body">
-                    <h2 class="card-title mb-3 fw-bold">Details</h2>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Name:</h3>
-                    <h5 id="staff-role">Mg Mg</h5>
-                    </div>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Role:</h3>
-                    <h5 id="staff-role">Receptionist</h5>
-                    </div>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Payroll:</h3>
-                    <h5 id="staff-payroll">800,000 MMK</h5>
-                    </div>
-                </div>
-                </div>
-            </div>
-            <div class="d-flex justify-content-around py-4">
-                <div class="card shadow-sm w-40 border-0">
-                <div class="card-body">
-                    <h2 class="card-title mb-3 fw-bold">Contact</h2>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Email:</h3>
-                    <h5 id="staff-role">Email@gmail.com</h5>
-                    </div>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Phone:</h3>
-                    <h5 id="staff-role">09963101015</h5>
-                    </div>
-                    <div class="mb-2 d-flex justify-content-between">
-                    <h3 class="fw-semibold">Since</h3>
-                    <h5 id="staff-payroll">19/3/2021</h5>
-                    </div>
-                </div>
-                </div>
-                <div class="changePassword">
-                    <div class="title"><h3>Change Password</h3></div>
-                    <form>
-                    <div class="form-group">
-                        <label for="exampleInputEmail1">Old Password</label>
-                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-                    </div>
-                    <div class="form-group">
-                        <label for="exampleInputPassword1">New Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-                    </div>
-                    <button type="submit" class="btn btn-primary my-3">Submit</button>
-                    </form>
-                </div>
-            </div>
-            </div>
+
+<div class="container py-4">
+    <button class="border-0" onclick="redirectHome()"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+    </svg></button> 
+  <!-- 🧍 Profile Header -->
+  <div class="text-center mb-4">
+    
+    <img id="profileImage" src="data:image/jpeg;base64,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" alt="Profile" class="profile-image">
+    <input type="file" id="profileUpload" class="form-control form-control-sm d-none mt-2" accept="image/*">
+    <h4 class="mb-0" id="displayName">Mg Mg</h4>
+    <p class="text-muted">Receptionist</p>
+  </div>
+
+  <!-- 📝 Personal Info Card -->
+  <div class="profile-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Personal Information</h5>
+      <button id="editBtn" class="btn btn-sm btn-primary btn-edit">Edit</button>
+    </div>
+
+    <form id="staffInfoForm">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Full Name</label>
+          <input type="text" id="staffName" class="form-control" value="Mg Mg" disabled>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Email</label>
+          <input type="email" id="staffEmail" class="form-control" value="email@gmail.com" disabled>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Phone</label>
+          <input type="text" id="staffPhone" class="form-control" value="09963101015" disabled>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-bold">Role</label>
+          <input type="text" id="staffRole" class="form-control" value="Receptionist" disabled>
+        </div>
+      </div>
+
+      <div class="text-end">
+        <button type="button" id="cancelBtn" class="btn btn-secondary btn-sm d-none">Cancel</button>
+        <button type="submit" id="saveBtn" class="btn btn-success btn-sm d-none">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 🧾 Payroll Info Card -->
+  <div class="profile-card">
+    <h5>Payroll Information</h5>
+    <p><strong>Current Payroll:</strong> 800,000 MMK</p>
+    <p><strong>Last Updated:</strong> 5/10/2025</p>
+  </div>
+<div class="mt-5 tableClass">
+<table class="table">
+   
+  <thead class="thead-dark">
+    <tr class="text-center">
+      <th scope="col">Service ID</th>
+      <th scope="col">Service Type</th>
+      <th scope="col">Service Status</th>
+      <th scope="col">Service Request Time</th>
+      <th scope="col">Room Code</th>
+      <th scope="col">Staff <slot name="x"><!-- optional fallback --></slot></th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody class="text-center">
+    <tr>
+      <th scope="row">1</th>
+      <td>Mark</td>
+      <td>Otto</td>
+      <td>@mdo</td>
+      <td>@mdo</td>
+      <td>@mdo</td>
+      <td>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
+        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">2</th>
+      <td>Jacob</td>
+      <td>Thornton</td>
+      <td>@fat</td>
+      <td>@mdo</td>
+      <td>@mdo</td>
+      <td>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
+        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+      </td>
+    </tr>
+    <tr>
+      <th scope="row">3</th>
+      <td>Larry</td>
+      <td>the Bird</td>
+      <td>@twitter</td>
+      <td>@mdo</td>
+      <td>@mdo</td>
+      <td>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
+        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+</div>
+</div>
+
+<!-- ✅ Scripts -->
+<script>
+  const editBtn = document.getElementById('editBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const inputs = document.querySelectorAll('#staffInfoForm input');
+  const profileImage = document.getElementById('profileImage');
+  const profileUpload = document.getElementById('profileUpload');
+  const displayName = document.getElementById('displayName');
+
+  editBtn.addEventListener('click', () => {
+    inputs.forEach(input => input.disabled = false);
+    profileUpload.classList.remove('d-none');
+    editBtn.classList.add('d-none');
+    cancelBtn.classList.remove('d-none');
+    saveBtn.classList.remove('d-none');
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    inputs.forEach(input => input.disabled = true);
+    profileUpload.classList.add('d-none');
+    editBtn.classList.remove('d-none');
+    cancelBtn.classList.add('d-none');
+    saveBtn.classList.add('d-none');
+  });
+
+  profileUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      profileImage.src = URL.createObjectURL(file);
+    }
+  });
+
+  document.getElementById('staffInfoForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    displayName.textContent = document.getElementById('staffName').value;
+    inputs.forEach(input => input.disabled = true);
+    profileUpload.classList.add('d-none');
+    editBtn.classList.remove('d-none');
+    cancelBtn.classList.add('d-none');
+    saveBtn.classList.add('d-none');
+    alert('✅ Information updated successfully!');
+  });
+  function redirectHome()   {window.location.href="/dashboard"}
+</script>
+
 </body>
 </html>
