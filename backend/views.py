@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from backend.models import Staffs,Stays,Guests,Rooms
 
 # Create your views here.
 
@@ -49,3 +50,13 @@ def css_file(request):
 
 def logout(request):
     return redirect('home')
+def login(request):
+    email=request.GET.get("email")
+    password=request.GET.get("password")
+    userData=Staffs.objects.filter(staffEmail=email).first()
+    # return HttpResponse(userData)
+    if userData.staffPassword == password:
+        request.session['staff_ID']=userData.staffID
+        return redirect("dashboard")
+    else :
+        return HttpResponse("Password Not Matched")

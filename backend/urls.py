@@ -16,6 +16,6 @@ urlpatterns = [
 
 # functions
     path('logout/',views.logout,name="logout"),
-    path('/login',views.login,name)
+    path('login/',views.login,name="login"),
     
     ]
