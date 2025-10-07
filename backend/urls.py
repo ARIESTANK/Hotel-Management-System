@@ -12,7 +12,7 @@ urlpatterns = [
     path('dashboard/',views.dashboard,name="dashboard"),
     path('staffProfile/',views.staffProfile,name="staffProfile"),
     path('cssFile/',views.css_file,name="css_file"),
-
+    path('rooms/',views.rooms,name="rooms"),
 
 # functions
     path('logout/',views.logout,name="logout"),

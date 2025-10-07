@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from backend.models import Staffs,Stays,Guests,Rooms
-
+from backend.decorators  import managerSession_required,staffSession_required
 # Create your views here.
 
 #login page 
@@ -16,24 +16,36 @@ def loginPage(request):
 #home page route
 def home(request):
     return render(request, "home.html")
+#rooms 
+def rooms(request):
+    return render(request,"roomsOverview.html")
+
+
 #bookingList route
+@managerSession_required('staff_ID')
 def bookingList(request):
     return render(request,"bookingsList.html")
 #service requests List
+@managerSession_required('staff_ID')
 def services(request):
     return render(request,"service.html")
 #guestList 
+@managerSession_required('staff_ID')
 def guestList(request):
     return render(request,"guest.html")
 #staffList
+@managerSession_required('staff_ID')
 def staffList(request):
     return render(request,"staffs.html")
 #staff Profile ROute
+@staffSession_required("staff_ID")
 def staffProfile(request):
     return render(request,"staffProfile.html")
 #admin Dashboard
+@managerSession_required('staff_ID')
 def dashboard(request):
     return render(request,"dashboard.html")
+
 
 
 
@@ -49,6 +61,7 @@ def css_file(request):
 #functions
 
 def logout(request):
+    request.session.flush() #deleting user session 
     return redirect('home')
 def login(request):
     email=request.GET.get("email")

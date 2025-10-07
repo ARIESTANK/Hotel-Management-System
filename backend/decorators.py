@@ -1,7 +1,28 @@
-# from django.shortcuts import redirect
-# import models as models_base
-# def guestSession_required(session_key="guestID"):
-#     def decorator(view_func):
-#         def _wrapper_view(request, *args, **kwargs):
-#             if(request.session.get(session_key)): #session key request
-#                 user=models_base.Guests.objects.filter()
+from django.shortcuts import redirect
+import backend.models as models_base
+#  for staffs
+def staffSession_required(session_key="staff_ID"):
+    def decorator(view_func):
+        def _wrapper_view(request, *args, **kwargs):
+            if(request.session.get(session_key)): #session key reques
+                return view_func(request, *args, **kwargs)
+            else:
+                return redirect('home') # no session data
+        return _wrapper_view
+    return decorator
+
+# for manager and receptionist
+def managerSession_required(session_key="staff_ID"):
+    def decorator(view_func):
+        def _wrapper_view(request, *args, **kwargs):
+            if(request.session.get(session_key)): #session key request
+                user=models_base.Staffs.objects.filter(staffID=request.session[session_key]).first()
+                if user.role=="Manager" or user.role=="Receptionist":
+                    return view_func(request, *args, **kwargs)
+                else :
+                    return redirect('home')
+            else:
+                return redirect('home') # no session data
+        return _wrapper_view
+    return decorator
+

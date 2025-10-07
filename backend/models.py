@@ -30,7 +30,7 @@ class Rooms(models.Model):
     buildingNo=[('A','buildingA'),('B','buildingB'),('C','buildingC'),('D','buildingD'),('E','buildingE'),('F','buildingF')]
     building=models.CharField(max_length=2,choices=buildingNo,default="A")
     accomodation=models.IntegerField(default="1") # amount that can fit in the room
-    roomType=[('P', 'premium'),('E', 'economy'),('A', 'average'),('V', 'VIP'),] # room types
+    roomType=[('P', 'premium'),('S', 'Standard'),('D', 'Deluxe'),('V', 'VIP'),] # room types
     type=models.CharField(max_length=100,null=False,choices=roomType)
     price=models.IntegerField(default=0)
     roomState=[ ('free', 'Free'),('booked', 'Booked'),('unavailable', 'Unavailable'),]
