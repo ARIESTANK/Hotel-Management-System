@@ -1,0 +1,136 @@
+{% include './header.html' %}
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  .page-title {
+    font-weight: 700;
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+
+  .service-section {
+    margin-top: 2rem;
+  }
+
+  .service-section h3 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-left: 4px solid #0d6efd;
+    padding-left: 10px;
+  }
+
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+
+  .card img {
+    height: 180px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-title {
+    font-weight: 600;
+  }
+
+  .card-text {
+    flex: 1;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .btn-service {
+    margin-top: auto;
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+</style>
+
+<body>
+<div class="container py-6">
+  <h2 class="page-title">🏨 Current Available Services</h2>
+
+  <!-- 🍽️ Restaurant Menus -->
+  <div class="service-section">
+    <h3>🍽️ Restaurant Menus</h3>
+    <div class="row g-4">
+      {% for menu in restaurant_menus %}
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{{ menu.image_url }}" alt="{{ menu.name }}" class="w-100 h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ menu.name }}</h5>
+            <p class="card-text">{{ menu.description }}</p>
+            <a href="/menuList"><button class="btn btn-service w-100">View Menu</button></a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 🧹 Housekeeping Services -->
+  <div class="service-section">
+    <h3>🧹 Housekeeping Services</h3>
+    <div class="row g-4">
+      {% for service in housekeeping_services %}
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{{ service.image_url }}" alt="{{ service.name }}" class="w-100 h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ service.name }}</h5>
+            <p class="card-text">{{ service.description }}</p>
+            <button class="btn btn-service w-100">Request Service</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 🧰 Other Services -->
+  <div class="service-section">
+    <h3>🧰 Other Services</h3>
+    <div class="row g-4">
+      {% for other in other_services %}
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{{ other.image_url }}" alt="{{ other.name }}" class="w-100 h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ other.name }}</h5>
+            <p class="card-text">{{ other.description }}</p>
+            <button class="btn btn-service w-100">More Info</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>

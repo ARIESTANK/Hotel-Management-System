@@ -1,0 +1,75 @@
+{% include './header.html' %}
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .menu-card {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        transition: 0.3s;
+        background: #fff;
+      }
+      .menu-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      .menu-title {
+        font-weight: 600;
+      }
+      .menu-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+      }
+      .price {
+        font-weight: 600;
+        color: #0d6efd;
+      }
+    </style>
+<body>
+
+<div class="container py-6">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold">🍽️ Available Menu</h2>
+    <form class="d-flex" role="search">
+      <input id="menuSearch" class="form-control me-2" type="search" placeholder="Search menu..." aria-label="Search">
+    </form>
+  </div>
+
+  <div class="row g-4" id="menuContainer">
+    {% for item in menus %}
+    <div class="col-md-4 menu-item">
+      <div class="menu-card p-3 h-100 d-flex flex-column">
+        <img src="/media/menu/{{ item.menuName|slugify }}.jpg" 
+             alt="{{ item.menuName }}" class="img-fluid mb-3 w-100 h-100" style=" object-fit: cover; border-radius: 8px;">
+        <h5 class="menu-title">{{ item.menuName }}</h5>
+        <p class="menu-description">{{ item.description }}</p>
+        <div class="d-flex justify-content-between align-items-center mt-auto">
+          <span class="price">${{ item.price }}</span>
+          <span class="badge bg-secondary">{{ item.cookingTime }} min</span>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">No menu items found.</p>
+    {% endfor %}
+</div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // 🔍 Live search filter
+  const searchInput = document.getElementById('menuSearch');
+  const menuItems = document.querySelectorAll('.menu-item');
+
+  searchInput.addEventListener('keyup', function() {
+    const filter = searchInput.value.toLowerCase();
+    menuItems.forEach(item => {
+      const name = item.querySelector('.menu-title').textContent.toLowerCase();
+      item.style.display = name.includes(filter) ? 'block' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

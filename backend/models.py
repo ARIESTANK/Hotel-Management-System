@@ -30,7 +30,7 @@ class Rooms(models.Model):
     buildingNo=[('A','buildingA'),('B','buildingB'),('C','buildingC'),('D','buildingD'),('E','buildingE'),('F','buildingF')]
     building=models.CharField(max_length=2,choices=buildingNo,default="A")
     accomodation=models.IntegerField(default="1") # amount that can fit in the room
-    roomType=[('P', 'premium'),('S', 'Standard'),('D', 'Deluxe'),('V', 'VIP'),] # room types
+    roomType=[('P', 'premium'),('S', 'Standard'),('D', 'Deluxe'),('Su', 'Suite'),] # room types
     type=models.CharField(max_length=100,null=False,choices=roomType)
     price=models.IntegerField(default=0)
     roomState=[ ('free', 'Free'),('booked', 'Booked'),('unavailable', 'Unavailable'),]
@@ -126,7 +126,8 @@ class Menus(models.Model):
     menuID=models.AutoField(primary_key=True)
     menuName=models.CharField(max_length=255,null=False)
     description=models.TextField(null=False)
-    price=models.IntegerField(null=False)   
+    price=models.IntegerField(null=False)
+    menuType=models.CharField(max_length=255,null=True)
     cookingTime=models.IntegerField(null=False)
     created_at=models.DateTimeField(auto_now_add=True)
     
@@ -136,9 +137,11 @@ class Menus(models.Model):
             'menuName':self.menuName,
             'description':self.description,
             'price':self.price,
+            'menuType':self.menuType,
             'cookingTime':self.cookingTime,
             'created_at':self.created_at,
         })
+
 # orders 
 class Orders(models.Model):
     orderID=models.AutoField(primary_key=True)
