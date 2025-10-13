@@ -1,14 +1,29 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.http import HttpResponse
 import os
+from django.db.models import Count
 from django.conf import settings
 # from .form import ImageUploadForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from backend.models import Staffs,Stays,Guests,Rooms,Menus
-from backend.decorators  import managerSession_required,staffSession_required
+from backend.decorators  import managerSession_required,staffSession_required,guestSession_required
+from .serializers import StaffsSerializer,GuestsSerializer
 # Create your views here.
+
+#api creations
+@api_view(['GET'])
+def authGuest(request):
+    guestData=GuestsSerializer(Guests.objects.get(guestID=request.session['user_ID']))
+    if guestData:
+        return Response(guestData.data)
+    else:
+        return Response("No AUth User")
+
+
+
+
 
 #login page 
 def loginPage(request):
@@ -43,8 +58,26 @@ def services(request):
     })
 #menu List Overview
 def menu_list(request):
+    menu_counts = Menus.objects.values('menuType').annotate(total=Count('menuType'))
     menus = Menus.objects.all().order_by('menuName')  # sorted alphabetically
-    return render(request, 'menu_list.html', {'menus': menus})
+    # print(menu_counts)
+    return render(request, 'menu_list.html', {'menus': menus,'menu_count':menu_counts})
+#menu list category
+def categoryMenu(request, type):
+    menus = Menus.objects.filter(menuType=type)
+    menu_counts = Menus.objects.values('menuType').annotate(total=Count('menuType'))
+    return render(request, 'menu_list.html', {'menus': menus,'menu_count': menu_counts})
+#contact_us Page
+def contact_us(request):
+    return render(request,"contact_us.html")
+
+
+#booking page route
+@guestSession_required('user_ID')
+def booking(request):
+    return render(request,"booking.html")
+
+
 
 #bookingList route
 @managerSession_required('staff_ID')
@@ -80,6 +113,11 @@ def css_file(request):
     with open(css_path,'r')as css_file:
         css_route=css_file.read()
     return HttpResponse(css_route,content_type="text/css")
+def js_file(request):
+    js_path = os.path.join(settings.BASE_DIR, 'static/js/index.js')
+    with open(js_path, 'r') as js_file:
+        js_route = js_file.read()
+    return HttpResponse(js_route, content_type='application/javascript')
 #api
 
 
@@ -92,9 +130,17 @@ def login(request):
     email=request.GET.get("email")
     password=request.GET.get("password")
     userData=Staffs.objects.filter(staffEmail=email).first()
+    if userData:
     # return HttpResponse(userData)
-    if userData.staffPassword == password:
-        request.session['staff_ID']=userData.staffID
-        return redirect("dashboard")
+        if userData.staffPassword == password:
+            request.session['staff_ID']=userData.staffID
+            return redirect("dashboard")
+        else :
+            return HttpResponse("Password Not Matched")
     else :
-        return HttpResponse("Password Not Matched")
+        guestData=Guests.objects.filter(guestEmail=email).first()
+        if guestData.password==password:
+            request.session['user_ID']=guestData.guestID
+            return redirect("home")
+        else:
+            return HttpResponse("Password is not Matched")

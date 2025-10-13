@@ -1,0 +1,168 @@
+{% include './header.html' %}
+<style>
+  body {
+    background: linear-gradient(135deg, #f0f4ff, #ffffff);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .booking-container {
+    max-width: 900px;
+    margin: 60px auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+  }
+
+  .booking-title {
+    font-weight: 600;
+    font-size: 2rem;
+    color: #0d6efd;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .form-label {
+    font-weight: 500;
+  }
+
+  .form-control, .form-select {
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    border-color: #0d6efd;
+  }
+
+  .btn-book {
+    background: linear-gradient(90deg, #0d6efd, #007bff);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    padding: 12px 0;
+    width: 100%;
+    transition: transform 0.2s;
+  }
+
+  .btn-book:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+  }
+
+  .section-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #495057;
+    margin-top: 25px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .booking-container {
+      padding: 25px;
+    }
+  }
+</style>
+
+<div class="booking-container">
+  <h2 class="booking-title">🛎 Hotel Room Booking</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- Guest Info -->
+    <h5 class="section-title">👤 Guest Information</h5>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="guest_name" id="guest_name" class="form-control" disabled required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" name="guest_email" id="guest_email" class="form-control" disabled  required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="text" name="guest_phone" id="guest_phone" class="form-control" disabled required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Number of Guests</label>
+        <input type="number" name="guest_count" class="form-control" min="1" value="1" required>
+      </div>
+    </div>
+
+    <!-- Booking Details -->
+    <h5 class="section-title mt-4">🛏 Booking Details</h5>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Room Type</label>
+        <select class="form-select" name="room_type" required>
+          <option value="">-- Select Room Type --</option>
+          <option value="standard">Standard Room</option>
+          <option value="deluxe">Deluxe Room</option>
+          <option value="premium">Premium Room</option>
+          <option value="suite">Suite</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Number of Rooms</label>
+        <input type="number" name="room_count" class="form-control" min="1" value="1" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Check-in Date</label>
+        <input type="date" name="check_in" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Check-out Date</label>
+        <input type="date" name="check_out" class="form-control" required>
+      </div>
+    </div>
+
+    <!-- Payment -->
+    <h5 class="section-title mt-4">💳 Payment Method</h5>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <select class="form-select" name="payment_method" required>
+          <option value="">-- Select Payment Method --</option>
+          <option value="credit_card">Credit Card</option>
+          <option value="cash">Cash on Arrival</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="mobile">Mobile Payment</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <input type="text" class="form-control" name="transaction_id" placeholder="Transaction ID (if applicable)">
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="mt-4">
+      <button type="submit" class="btn btn-book">Confirm Booking</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  async function getUserData() {
+    try {
+      const response =await  fetch('http://127.0.0.1:8000/api/authGuest');
+      // if (!response.ok) {
+      //   throw new Error("HTTP error " + response.status);
+      // }
+      
+      const data = await response.json();
+      document.getElementById("guest_email").value=data.guestEmail;
+      document.getElementById("guest_name").value=data.guestName;
+      document.getElementById("guest_phone").value=data.guestPh;
+      console.log(data); // see data in console
+    } catch (error) {
+      console.error("Error loading guest:", error);
+    }
+  }
+  getUserData()
+</script>
+

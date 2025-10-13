@@ -34,7 +34,14 @@
       <input id="menuSearch" class="form-control me-2" type="search" placeholder="Search menu..." aria-label="Search">
     </form>
   </div>
-
+    <ul class="d-flex justify-content-between mx-auto w-75">
+      <a href='/menuList'><h5><span class="badge bg-secondary">All </span></h5></a>
+    {% for item in menu_count %}
+      <a href='/menuList/{{item.menuType}}'><h5><span class="badge bg-secondary">{{ item.menuType }} ({{item.total}}) </span></h5></a>
+    {% empty %}
+      <p class="text-muted">No menu items found.</p>
+    {% endfor %}
+  </ul>
   <div class="row g-4" id="menuContainer">
     {% for item in menus %}
     <div class="col-md-4 menu-item">
@@ -45,7 +52,10 @@
         <p class="menu-description">{{ item.description }}</p>
         <div class="d-flex justify-content-between align-items-center mt-auto">
           <span class="price">${{ item.price }}</span>
+          <div class="d-flex justify-content-between w-50">
+            <span class="badge bg-success">{{ item.menuType }}</span>
           <span class="badge bg-secondary">{{ item.cookingTime }} min</span>
+          </div>
         </div>
       </div>
     </div>
