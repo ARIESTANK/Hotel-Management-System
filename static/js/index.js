@@ -1,11 +1,12 @@
 async function loadGuest() {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/authGuest');
+      const response = await fetch('http://192.168.100.11:8000//api/authGuest');
       // if (!response.ok) {
       //   throw new Error("HTTP error " + response.status);
       // }
       
       const data = await response.json();
+      console.log("", data);
       document.getElementById("login").style.display="none"
       document.getElementById("userName").innerText=data.guestName;
       console.log(data); // see data in console

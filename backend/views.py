@@ -10,9 +10,14 @@ from rest_framework.views import APIView
 from backend.models import Staffs,Stays,Guests,Rooms,Menus
 from backend.decorators  import managerSession_required,staffSession_required,guestSession_required
 from .serializers import StaffsSerializer,GuestsSerializer
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+
 # Create your views here.
 
 #api creations
+
+#Auth guest Data creation
 @api_view(['GET'])
 def authGuest(request):
     guestData=GuestsSerializer(Guests.objects.get(guestID=request.session['user_ID']))
@@ -21,6 +26,36 @@ def authGuest(request):
     else:
         return Response("No AUth User")
 
+#Room Type Descriptions
+@api_view(["GET"])
+def roomsData(request):
+    roomTypes={
+    "Deluxe":{
+        "image":"https://www.castlemartyrresort.ie/wp-content/uploads/2020/05/Deluxe-scaled.jpg",
+        "description":"Spacious room with premium amenities and city view.",
+        "price":"100",
+        "additional":{"TV","Free Wifi","AC","Bathtub + rain shower","Electronic key"}
+        },
+    "Premium":{
+        "image":"https://cache.marriott.com/is/image/marriotts7prod/xr-dxbpx-grand-deluxe-21608-28225:Classic-Hor?wid=1920&fit=constrain",
+        "description":"Premium Quality and better experience of stays.",
+        "price":"120",
+        "additional":{"TV","Free Wifi","AC","rain shower","Electronic key","Breakfast",}
+    },
+    "Standard":{
+        "image":"https://cf.bstatic.com/xdata/images/hotel/max1024x768/251287101.jpg?k=10b33cfbb68fdeb6bdba061c7772f84c91802dc59b80675659c9966565b92a89&o=&hp=1",
+        "description":"Comfortable room ideal for short stays.",
+        "price":"80",
+        "additional":{"TV","Free Wifi","AC","rain shower"}
+    },
+    "Suite":{
+        "image":"https://i.pinimg.com/736x/70/a8/ab/70a8ab5aa285df3fa6c8b95d497dadcd.jpg",
+        "description":"Luxury suite with separate living area and modern decor.",
+        "price":"150",
+        "additional":{"TV","Free Wifi","AC","Bathtub + rain shower","Electronic key","Full Meals","Mini Bar"}
+    }
+    }
+    return Response(roomTypes)
 
 
 
@@ -76,8 +111,12 @@ def contact_us(request):
 @guestSession_required('user_ID')
 def booking(request):
     return render(request,"booking.html")
-
-
+@guestSession_required('user_ID')
+def roomDetail(request,roomType):
+    return render(request,'roomDetail.html')
+@guestSession_required('user_ID')
+def guestProfile(request):
+    return render(request,'guestProfile.html')
 
 #bookingList route
 @managerSession_required('staff_ID')
@@ -103,7 +142,10 @@ def staffProfile(request):
 @managerSession_required('staff_ID')
 def dashboard(request):
     return render(request,"dashboard.html")
-
+@managerSession_required('staff_ID')
+def roomList(request):
+    roomList=Rooms.objects.all()
+    return render(request,"roomList.html",{"roomList":roomList})
 
 
 
@@ -144,3 +186,40 @@ def login(request):
             return redirect("home")
         else:
             return HttpResponse("Password is not Matched")
+@managerSession_required('staff_ID')
+@csrf_exempt
+def createRoom(request):
+    if request.method == "POST":
+        roomCode=request.POST.get("roomCode")
+        roomType = request.POST.get("roomType")
+        building=request.POST.get("building")
+        price = request.POST.get("price")
+        accomodation=request.POST.get("accomodation")
+        createRoomProcess=Rooms.objects.create(roomCode=roomCode,type=roomType,building=building,price=price,accomodation=accomodation,status="free")
+        createRoomProcess.save()
+        return redirect("roomsList")
+    
+@managerSession_required('staff_ID')
+@csrf_exempt
+def filterRoom(request):
+    if request.method=="POST":
+        roomType = request.POST.get("roomType")
+        accomodation=request.POST.get("accomodation")
+        status=request.POST.get("status")
+        if not roomType and not accomodation and not status:
+            rooms=Rooms.objects.all()
+        elif roomType and not accomodation and not status:
+            rooms = Rooms.objects.filter(type=roomType)
+        elif accomodation and not roomType and not status:
+            rooms = Rooms.objects.filter(accomodation=accomodation)
+        elif status and not accomodation and not roomType:
+            rooms = Rooms.objects.filter(status=status)
+        elif roomType and accomodation and not status:
+            rooms = Rooms.objects.filter(type=roomType,accomodation=accomodation)
+        elif status and accomodation and not roomType:
+            rooms = Rooms.objects.filter(status=status,accomodation=accomodation)
+        elif roomType and status and not accomodation:
+            rooms = Rooms.objects.filter(type=roomType,status=status)
+        else:
+            rooms = Rooms.objects.filter(status=status,accomodation=accomodation,type=roomType)
+        return render(request, "roomList.html", {"roomList": rooms})

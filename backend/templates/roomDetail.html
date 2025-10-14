@@ -1,0 +1,119 @@
+{% include './header.html' %}
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .room-banner {
+        height: 400px;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 5px solid #0d6efd;
+        border-radius: 0 0 20px 20px;
+    }
+    .room-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .room-banner img:hover {
+        transform: scale(1.05);
+    }
+    .room-details {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        margin-top: -100px;
+        padding: 40px;
+    }
+    .amenities span.facility-badge {
+        display: inline-block;
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        padding: 5px 12px;
+        margin: 5px 5px 5px 0;
+        border-radius: 50px;
+        font-size: 0.9rem;
+    }
+    .price-tag {
+        font-size: 2rem;
+        color: #0d6efd;
+        font-weight: 700;
+        margin-top: 15px;
+    }
+    .btn-book {
+        border-radius: 30px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .room-description h5 {
+        margin-top: 25px;
+        font-weight: 600;
+        color: #333;
+    }
+    .check-times h6 {
+        font-weight: 500;
+        margin: 10px 0;
+        color: #555;
+    }
+</style>
+
+<body>
+    <!-- Room Banner -->
+    <div class="room-banner">
+        <img src="" id="room-banner" alt="Room Image">
+    </div>
+
+    <!-- Room Details -->
+    <div class="container room-details" id="room-details"></div>
+</body>
+
+<script>
+async function loadRooms() {
+    try {
+        const response = await fetch('http://192.168.100.11:8000/api/roomsData');  // your Django API endpoint
+        const data = await response.json();
+        const urlSegments = window.location.pathname.split('/');
+        const roomType = urlSegments[2]; 
+
+        for (const [name, room] of Object.entries(data)) {
+            if(name === roomType){
+                document.getElementById('room-banner').src = room.image;
+                document.getElementById('room-details').innerHTML = `
+                <div class="row">
+                    <div class="col-md-8 room-description my-5 py-5">
+                        <h2 class="fw-bold">${name}</h2>
+                        <h5>Room Description</h5>
+                        <p>${room.description}</p>
+
+                        <h5>Amenities</h5>
+                        <div class="amenities">
+                            ${room.additional.map(item => `<span class="facility-badge">${item}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 text-center">
+                        <div class="card shadow-sm p-3 mb-3">
+                            <h5 class="text-muted">Per Night</h5>
+                            <div class="price-tag">$${room.price}</div>
+                            <a href="/booking"><button class="btn btn-primary btn-book mt-3 w-100">Book Now</button></a>
+                            <div class="check-times mt-4">
+                                <h6><i class="bi bi-clock-history me-2"></i>Check-in: 11:00 AM</h6>
+                                <h6><i class="bi bi-clock me-2"></i>Check-out: 1:00 PM</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+    } catch(error){
+        console.log(error);
+        document.getElementById('room-details').innerHTML = `<p class="text-danger">Failed to load room details.</p>`;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', loadRooms);
+</script>
+

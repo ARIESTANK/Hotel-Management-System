@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-iybmz=d$vl_)kikd&&%de8^m)pt&s2(g%s-ye&ok9r$3m46$ep
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.100.11']
 
 
 # Application definition
@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'rest_framework', 
     'backend',
 ]
+
+APPEND_SLASH = False
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

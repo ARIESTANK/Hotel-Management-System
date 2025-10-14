@@ -1,0 +1,146 @@
+{% include './header.html' %}
+
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .profile-header {
+    background-color: #0d6efd;
+    color: #fff;
+    padding: 50px 20px 30px;
+    border-radius: 0 0 30px 30px;
+    text-align: center;
+    position: relative;
+}
+
+/* Make profile picture overlay smaller on mobile */
+.profile-header img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    object-fit: cover;
+    position: absolute;
+    bottom: -60px; /* reduced for smaller screen */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.profile-body {
+    margin-top: 60px; /* reduce extra space */
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 30px;
+}
+
+/* Mobile adjustments */
+@media(max-width: 576px){
+    .profile-header img {
+        width: 100px;
+        height: 100px;
+        /* position: */
+        margin-left: -15%;
+        bottom: auto;
+        transform: none;
+        margin-top: -30px; /* less aggressive overlap */
+        /* Or keep it as 'margin-top: 0;' and rely on the body margin */
+    }
+    .profile-body {
+        margin-top: -20px; /* Adjust based on image overlap */
+        padding: 20px;
+    }
+}
+
+</style>
+
+<body>
+  <!-- Profile Header -->
+  <div class="profile-header my-5">
+    <h2 class="my-5">Guest Profile</h2>
+    <img id="profile-picture" src="" alt="Profile Picture">
+  </div>
+
+  <!-- Profile Body -->
+  <div class="profile-body">
+    <div class="profile-info">
+        <h3 id="guest-name" class="mb-3">Guest Name</h3> 
+        <p><strong>Email:</strong> <span id="guest-email">guest@example.com</span></p>
+        <p><strong>NRC No:</strong> <span id="guest-nrc">12/ABC(N)123456</span></p>
+        <p><strong>Phone:</strong> <span id="guest-phone">+1234567890</span></p>
+        <p><strong>Address:</strong> <span id="guest-address">123 Main Street, City</span></p>
+        <p><strong>Member Since:</strong> <span id="guest-joined">2025-01-01</span></p>
+        <div class="d-grid gap-2 d-md-block mt-4">
+            <button class="btn btn-primary btn-edit">Edit Profile</button>
+            <a href="/logout"><button class="btn btn-danger btn-logout">Logout</button></a>
+        </div>
+    </div>
+
+
+    <!-- Booking Summary -->
+    <div class="bookings-table">
+      <h4 class="mt-4">Booking History</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Room</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="booking-list">
+          <!-- Bookings will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+
+<script>
+  async function loadGuestProfile() {
+    try {
+      // Replace with your guest API endpoint
+      const response = await fetch('http://192.168.100.11:8000/api/authGuest');
+      const data = await response.json();
+
+      // Populate guest info
+      document.getElementById('profile-picture').src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTV0zscYTnOxutaPDaZ9Un0Ak-y0yR8jw40qA&s';
+      document.getElementById('guest-name').textContent = data.guestName;
+      document.getElementById('guest-email').textContent = data.guestEmail;
+      document.getElementById('guest-phone').textContent = data.guestPh;
+      document.getElementById('guest-joined').textContent = data.created_at;
+      document.getElementById('guest-nrc').textContent = data. guestNRC;
+      document.getElementById('guest-address').textContent = data.Address;
+
+
+      // Populate bookings
+      const bookingList = document.getElementById('booking-list');
+      bookingList.innerHTML = '';
+      data.bookings.forEach(booking => {
+        bookingList.innerHTML += `
+          <tr>
+            <td>${booking.id}</td>
+            <td>${booking.room}</td>
+            <td>${booking.check_in}</td>
+            <td>${booking.check_out}</td>
+            <td>${booking.status}</td>
+          </tr>
+        `;
+      });
+
+    } catch (error) {
+      console.error('Error loading guest profile:', error);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', loadGuestProfile);
+</script>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">

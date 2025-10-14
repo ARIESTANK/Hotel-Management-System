@@ -5,7 +5,7 @@ urlpatterns = [
     #api
 
     path("api/authGuest",views.authGuest,name="authGuest"),
-
+    path('api/roomsData',views.roomsData,name="roomsData"),
     #file routing
     path('cssFile/',views.css_file,name="css_file"),
     path('js_File/', views.js_file, name='js_file'),
@@ -25,8 +25,12 @@ urlpatterns = [
     path('menuList/<str:type>',views.categoryMenu,name="categoryMenu"),
     path('contactUs/',views.contact_us,name="contactUs"),
     path('booking/',views.booking,name="booking"),
+    path('roomDetail/<str:roomType>',views.roomDetail,name="roomDetail"),
+    path('guestProfile/',views.guestProfile,name="guestProfile"),
+    path('roomsList/',views.roomList,name="roomsList"),
 # functions
     path('logout/',views.logout,name="logout"),
     path('login/',views.login,name="login"),
-    
+    path('createRoom/',views.createRoom,name="createRoom"),
+    path('filterRooms/',views.filterRoom,name="filterRoom"),
     ]

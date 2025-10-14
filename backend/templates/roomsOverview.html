@@ -43,100 +43,55 @@
   }
 </style>
 
-<body>
 
 <div class="container py-6">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="page-title">🏨 Room Types Overview</h2>
   </div>
 
-  <div class="row g-4">
-
-    <!-- 🛏 Deluxe Room -->
-    <div class="col-md-6">
-      <div class="room-card bg-white">
-        <img src="https://www.castlemartyrresort.ie/wp-content/uploads/2020/05/Deluxe-scaled.jpg" class="w-100 h-100" alt="Deluxe Room">
-        <div class="p-3">
-          <h5 class="fw-bold mb-1">Deluxe Room</h5>
-          <p class="text-muted mb-2">Spacious room with premium amenities and city view.</p>
-          <p class="fw-semibold text-primary mb-2">$120 / night</p>
-          <div class="mb-2">
-            <span class="badge facility-badge">Free WiFi</span>
-            <span class="badge facility-badge">AC</span>
-            <span class="badge facility-badge">Breakfast</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i> View</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🛏 Standard Room -->
-    <div class="col-md-6">
-      <div class="room-card bg-white">
-        <img src="https://cache.marriott.com/is/image/marriotts7prod/xr-dxbpx-grand-deluxe-21608-28225:Classic-Hor?wid=1920&fit=constrain" class="w-100 h-100" alt="Premium Room">
-        <div class="p-3">
-          <h5 class="fw-bold mb-1">Premium Room</h5>
-          <p class="text-muted mb-2">Premium Quality and better experience of stays.</p>
-          <p class="fw-semibold text-primary mb-2">$100 / night</p>
-          <div class="mb-2">
-            <span class="badge facility-badge">Free WiFi</span>
-            <span class="badge facility-badge">TV</span>
-            <span class="badge facility-badge">AC</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i> View</button>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🛏 Standard Room -->
-    <div class="col-md-6 ">
-      <div class="room-card bg-white">
-        <img src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/251287101.jpg?k=10b33cfbb68fdeb6bdba061c7772f84c91802dc59b80675659c9966565b92a89&o=&hp=1" class="w-100 h-100" alt="Standard Room">
-        <div class="p-3">
-          <h5 class="fw-bold mb-1">Standard Room</h5>
-          <p class="text-muted mb-2">Comfortable room ideal for short stays.</p>
-          <p class="fw-semibold text-primary mb-2">$80 / night</p>
-          <div class="mb-2">
-            <span class="badge facility-badge">Free WiFi</span>
-            <span class="badge facility-badge">TV</span>
-            <span class="badge facility-badge">AC</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i> View</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🛏 Suite -->
-    <div class="col-md-6">
-      <div class="room-card bg-white">
-        <img src="https://i.pinimg.com/736x/70/a8/ab/70a8ab5aa285df3fa6c8b95d497dadcd.jpg" class="w-100 h-100" alt="Suite">
-        <div class="p-3">
-          <h5 class="fw-bold mb-1">Suite</h5>
-          <p class="text-muted mb-2">Luxury suite with separate living area and modern decor.</p>
-          <p class="fw-semibold text-primary mb-2">$200 / night</p>
-          <div class="mb-2">
-            <span class="badge facility-badge">Free WiFi</span>
-            <span class="badge facility-badge">King Bed</span>
-            <span class="badge facility-badge">Mini Bar</span>
-            <span class="badge facility-badge">AC</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <a href="room"><button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i> View</button></a>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="row g-4" id="room-container">
 
   </div>
 </div>
+<script>
+    async function loadRooms() {
+      try {
+        const response = await fetch('http://192.168.100.11:8000/api/roomsData');  // your Django API endpoint
+        const data = await response.json();
+        const container = document.getElementById('room-container');
+        container.innerHTML = '';
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        // Loop through rooms
+        for (const [name, room] of Object.entries(data)) {
+          const roomHTML = `
+              <div class="col-md-6">
+            <div class="room-card bg-white">
+              <img src=${room.image} class="w-100 h-100" alt="Suite">
+              <div class="p-3">
+                <h5 class="fw-bold mb-1">${name}</h5>
+                <p class="text-muted mb-2">${room.description}</p>
+                <p class="fw-semibold text-primary mb-2">${room.price}/ night</p>
+                <div class="mb-2">
+                  ${room.additional.map(item => `<span class="badge facility-badge">${item}</span>`).join('')}
+                </div>
+                <div class="d-flex justify-content-between">
+                  <a href="/roomDetail/${name}"><button class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i> View</button></a>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+          container.insertAdjacentHTML('beforeend', roomHTML);
+        }
+
+      } catch (error) {
+        console.error('Error loading rooms:', error);
+        document.getElementById('room-container').innerHTML =
+          `<p class="text-danger">Failed to load rooms. Please try again later.</p>`;
+      }
+    }
+
+    // Call function on page load
+    loadRooms();
+  </script>
+
