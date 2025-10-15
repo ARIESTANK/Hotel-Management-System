@@ -186,6 +186,7 @@ def login(request):
             return redirect("home")
         else:
             return HttpResponse("Password is not Matched")
+
 @managerSession_required('staff_ID')
 @csrf_exempt
 def createRoom(request):
@@ -223,3 +224,10 @@ def filterRoom(request):
         else:
             rooms = Rooms.objects.filter(status=status,accomodation=accomodation,type=roomType)
         return render(request, "roomList.html", {"roomList": rooms})
+    
+@guestSession_required('user_ID')
+@csrf_exempt
+def createOrder(request):
+    if request.method == "POST":
+        cart_data = request.POST.get("cart_data")
+        stay_ID=Stays.objects.filter(guestID=request.session['user_ID'])

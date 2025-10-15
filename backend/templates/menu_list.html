@@ -62,14 +62,45 @@
           <span class="price">${{ item.price }}</span>
           <div class="d-flex justify-content-between w-50">
             <span class="badge bg-success">{{ item.menuType }}</span>
-          <span class="badge bg-secondary">{{ item.cookingTime }} min</span>
+            <span class="badge bg-secondary">{{ item.cookingTime }} min</span>
+          
           </div>
+          <button class="btn btn-success" onclick="addToCart('{{item.menuID}}','{{item.menuName}}','{{item.price}}')">Add</button>
         </div>
       </div>
     </div>
     {% empty %}
     <p class="text-muted">No menu items found.</p>
     {% endfor %}
+    <button class="btn btn-primary rounded-circle position-fixed shadow" style="bottom: 30px; right: 30px; width: 60px; height: 60px; font-size: 22px;" data-bs-toggle="modal" data-bs-target="#cartModal">
+      🛒
+      <span id="floating-cart-count"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        0
+      </span>
+    </button>
+    <!-- Cart Modal -->
+    <form class="form" action="/createOrder/" method="post">
+      {% csrf_token %}
+    <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-end modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="cartModalLabel">🛒 Your Cart</h5>
+            <input type="hidden" name="cart_data" id="cart-data">
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="cart-items">
+            <p class="text-muted text-center">No items in cart</p>
+          </div>
+          <div class="modal-footer d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Total: $<span id="cart-total">0.00</span></h5>
+            <button class="btn btn-success" type="submit" id="checkout-btn" disabled>Order</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </form>
 </div>
 
 
@@ -87,4 +118,61 @@
       item.style.display = name.includes(filter) ? 'block' : 'none';
     });
   });
+let cart = [];
+
+function addToCart(id,name, price) {
+  const itemIndex = cart.findIndex(i => i.name === name);
+  
+  if (itemIndex > -1) {
+    cart[itemIndex].qty += 1;
+  } else {
+    cart.push({id, name, price, qty: 1 });
+  }
+
+  updateCart();
+}
+
+function removeFromCart(name) {
+  cart = cart.filter(i => i.name !== name);
+  updateCart();
+}
+
+function updateCart() {
+  const cartItemsDiv = document.getElementById('cart-items');
+  const cartTotal = document.getElementById('cart-total');
+  const checkoutBtn = document.getElementById('checkout-btn');
+  const floatingCount = document.getElementById('floating-cart-count');
+
+  cartItemsDiv.innerHTML = '';
+  let total = 0;
+
+  if (cart.length === 0) {
+    cartItemsDiv.innerHTML = '<p class="text-muted text-center">No items in cart</p>';
+    checkoutBtn.disabled = true;
+    floatingCount.textContent = 0;
+  } else {
+    checkoutBtn.disabled = false;
+    cart.forEach(item => {
+      total += item.price * item.qty;
+      cartItemsDiv.innerHTML += `
+        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+          <div>
+            <strong>${item.name}</strong><br>
+            <small>$${item.price} × ${item.qty}</small>
+          </div>
+          <div class="text-end">
+            <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${item.name}')">✕</button>
+          </div>
+        </div>
+      `;
+    });
+    floatingCount.textContent = cart.length;
+  }
+
+  cartTotal.textContent = total.toFixed(2);
+  document.querySelector(".form").addEventListener("submit", function (e) {
+  const cartInput = document.getElementById("cart-data");
+  cartInput.value = JSON.stringify(cart);
+});
+}
 </script>
