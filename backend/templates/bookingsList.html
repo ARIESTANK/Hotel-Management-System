@@ -1,82 +1,222 @@
 {% include './staffHeader.html' %}
+
 <style>
-.tableClass{
-    margin-left: 5%;
-    margin-right: 5%;
-    padding-left: 3%;
-    padding-right: 3%;
-    padding-top: 2%;
-    padding-bottom: 5%;
-    -webkit-box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86); 
-    box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+.table-container {
+    margin: 2% auto;
+    padding: 2%;
+    max-width: 95%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow-x: auto;
 }
-.input{
-    float:right;
-    margin-bottom: 3%;
+
+.table-container h4 {
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+#searchInput {
+    max-width: 300px;
+    float: right;
+    margin-bottom: 1rem;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease-in-out;
+}
+
+#searchInput:focus {
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f5f9;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
-<div class="mt-5 tableClass">
-<table class="table">
-   <div class="mb-3">
-    <input type="text" id="searchInput" class="form-control" placeholder="Search guest by name...">
+
+<div class="table-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Recent Bookings</h4>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search guest by name...">
+    </div>
+
+    <table class="table table-hover text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+              <th scope="col">Booking ID</th>
+              <th scope="col">Guest Name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Booking Date</th>
+              <th scope="col">Room Type</th>
+              <th scope="col">Guest Count</th>
+              <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody id="booking-list">
+            {% for booking in bookings %}
+            <tr>
+              <td>#{{ booking.bookingID }}</td>
+              <td>{{ booking.guestID.guestName }}</td>
+              {% if booking.roomID %}
+              <td><span class="badge bg-success">Accepted</span></td>
+              {% else %}
+              <td><span class="badge bg-warning">Pending</span></td>
+              {% endif %}
+              <td>{{ booking.created_at|date:"Y-m-d" }}</td>
+              <td>{{booking.roomType}}</td>
+              <td>{{booking.guestCount}}</td>
+              <td>
+                {% if booking.roomID %}
+                <button class="btn btn-outline-success btn-sm me-1" title="Approve" data-bs-toggle="modal" data-bs-target="#acceptBookingModal" onclick="setBookingID('{{ booking.bookingID }}','{{booking.guestCount}}','{{booking.roomType}}')" disabled>
+                  <i class="bi bi-check-all"></i>
+                </button>
+                {% else %}
+                <button class="btn btn-outline-success btn-sm me-1" title="Approve" data-bs-toggle="modal" data-bs-target="#acceptBookingModal" onclick="setBookingID('{{ booking.bookingID }}','{{booking.guestCount}}','{{booking.roomType}}')">
+                  <i class="bi bi-check-all"></i>
+                </button>
+                {% endif %}
+                <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="openDeleteModal('{{ booking.bookingID }}')" >
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-muted py-4">
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                No bookings found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+    </table>
+</div>
+<!-- Accept Booking Modal -->
+<div class="modal fade" id="acceptBookingModal" tabindex="-1" aria-labelledby="acceptBookingLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="/acceptBooking/">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="acceptBookingLabel">Assign Room to Booking</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control" name="bookingID" id="modalBookingID" readonly>
+          <div class="mb-3">
+            <label for="roomSelect" class="form-label">Select Room</label>
+            <select class="form-select" name="roomID" id="roomSelect" required>
+              {% for room in rooms %}
+                <option value="{{ room.roomID }}">{{ room.roomCode }} - {{ room.type }} ({{ room.status }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Assign Room</button>
+        </div>
+      </form>
+    </div>
   </div>
-  <thead class="thead-dark">
-    <tr class="text-center">
-      <th scope="col">BookingID</th>
-      <th scope="col">Guest Name</th>
-      <th scope="col">Room Code</th>
-      <th scope="col">Booking Date</th>
-      <th scope="col">Action</th>
-    </tr>
-  </thead>
-  <tbody class="text-center">
-    <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-      <td>
-        <button class="btn btn-success"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Jacob</td>
-      <td>Thornton</td>
-      <td>@fat</td>
-      <td>
-        <button class="btn btn-success"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td>Larry</td>
-      <td>the Bird</td>
-      <td>@twitter</td>
-      <td>
-        <button class="btn btn-success"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"><path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+</div>
 
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteBookingModal" tabindex="-1" aria-labelledby="deleteBookingLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteBookingLabel">Delete Booking</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
+      <div class="modal-body text-center">
+        <p class="fw-semibold fs-5">What would you like to do with this booking?</p>
+        <input type="hidden" id="modalBookingID">
+      </div>
+
+      <div class="modal-footer d-flex justify-content-around">
+        <button type="button" class="btn btn-success w-45" onclick="createStay()">Create Stay</button>
+        <button type="button" class="btn btn-danger w-45" onclick="deleteBooking()">Just Delete</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  const searchInput = document.getElementById('searchInput');
-//   const guestList = document.getElementById('guestList');
-//   const guests = guestList.getElementsByClassName('guest-item');
+const searchInput = document.getElementById('searchInput');
+const bookingList = document.getElementById('booking-list');
+const rows = bookingList.getElementsByTagName('tr');
 
-  searchInput.addEventListener('keyup', () => {
+searchInput.addEventListener('keyup', () => {
     const filter = searchInput.value.toLowerCase();
-    console.log(filter);
-    // Array.from(guests).forEach(guest => {
-    //   const name = guest.textContent.toLowerCase();
-    //   guest.style.display = name.includes(filter) ? '' : 'none';
-    // });
-  });
+    Array.from(rows).forEach(row => {
+        const guestName = row.cells[1].textContent.toLowerCase();
+        row.style.display = guestName.includes(filter) ? '' : 'none';
+    });
+});
+
+
+async function setBookingID(roomID,guestCount,roomType){ 
+    document.getElementById('modalBookingID').value=`${roomID}`
+  
+    // room section-box
+    const response=await fetch(`http://192.168.100.11:8000/api/rooms/${guestCount}/${roomType}`)
+    const rooms=await response.json()
+    rooms.forEach(room => {
+      document.getElementById('roomSelect').innerHTML+=`<option value=${ room.roomID }>${ room.building } - ${room.roomCode} </option>`
+    });
+    };
+
+
+function openDeleteModal(bookingID) {
+  document.getElementById("modalBookingID").value = bookingID;
+  const modal = new bootstrap.Modal(document.getElementById("deleteBookingModal"));
+  modal.show();
+}
+
+function createStay() {
+  const bookingID = document.getElementById("modalBookingID").value;
+  window.location.href=`/createStay/${bookingID}`
+}
+
+
+function deleteBooking() {
+  const bookingID = document.getElementById("modalBookingID").value;
+  window.location.href=`/deleteBooking/${bookingID}`
+}
+
+// Helper to get CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 </script>

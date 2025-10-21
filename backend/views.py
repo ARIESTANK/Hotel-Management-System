@@ -1,15 +1,16 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.http import HttpResponse
 import os
+import json
 from django.db.models import Count
 from django.conf import settings
 # from .form import ImageUploadForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from backend.models import Staffs,Stays,Guests,Rooms,Menus
-from backend.decorators  import managerSession_required,staffSession_required,guestSession_required
-from .serializers import StaffsSerializer,GuestsSerializer
+from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders
+from backend.decorators  import managerSession_required,staffSession_required,guestSession_required,staySession_required,ChefSession_required
+from .serializers import StaffsSerializer,GuestsSerializer,RoomSerializer,StaysSerializer
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
@@ -25,6 +26,15 @@ def authGuest(request):
         return Response(guestData.data)
     else:
         return Response("No AUth User")
+
+@api_view(['GET'])
+def authStay(request):
+    stayData=StaysSerializer(Stays.objects.get(stayID=request.session['stay_ID']))
+    if stayData:
+        return Response(stayData.data)
+    else:
+        return Response("No AUth Stay")
+
 
 #Room Type Descriptions
 @api_view(["GET"])
@@ -57,6 +67,11 @@ def roomsData(request):
     }
     return Response(roomTypes)
 
+@api_view(['GET'])
+def roomFilter(request,guestCount,roomType):
+    filteredRooms=Rooms.objects.filter(accomodation=guestCount,type=roomType,status="free")
+    serializer = RoomSerializer(filteredRooms, many=True)
+    return Response(serializer.data)
 
 
 
@@ -116,12 +131,19 @@ def roomDetail(request,roomType):
     return render(request,'roomDetail.html')
 @guestSession_required('user_ID')
 def guestProfile(request):
-    return render(request,'guestProfile.html')
+    guestID=request.session['user_ID']
+    stayID=request.session['stay_ID']
+    stay=Stays.objects.get(pk=stayID)
+    orders=Orders.objects.filter(stayID=stay)
+    guest=Guests.objects.get(pk=guestID)
+    bookings=Bookings.objects.filter(guestID=guest)
+    return render(request,'guestProfile.html',{'bookings':bookings,'orders':orders})
 
 #bookingList route
 @managerSession_required('staff_ID')
 def bookingList(request):
-    return render(request,"bookingsList.html")
+    bookings = Bookings.objects.all().order_by('created_at')
+    return render(request,"bookingsList.html",{'bookings':bookings})
 #service requests List
 @managerSession_required('staff_ID')
 def servicesList(request):
@@ -141,12 +163,32 @@ def staffProfile(request):
 #admin Dashboard
 @managerSession_required('staff_ID')
 def dashboard(request):
-    return render(request,"dashboard.html")
+    bookings = Bookings.objects.all().order_by('created_at')[:5]
+    return render(request,"dashboard.html",{'bookings':bookings})
 @managerSession_required('staff_ID')
 def roomList(request):
     roomList=Rooms.objects.all()
     return render(request,"roomList.html",{"roomList":roomList})
-
+@ChefSession_required('staff_ID')
+def foodOrders(request):
+    orders=Orders.objects.all()
+    for order in orders:
+        # Get the stay linked to this order
+        stay = Stays.objects.filter(pk=order.stayID_id).first()
+        if stay:
+            # Get the room linked to this stay
+            room = Rooms.objects.filter(pk=stay.roomID_id).first()
+            if room:
+                # Attach roomCode to the order object dynamically
+                order.building = room.building
+                order.room_code = room.roomCode
+            else:
+                order.building = "N/A"
+                order.room_code = "N/A"
+        else:
+            order.building = "N/A"
+            order.room_code = "N/A"
+    return render(request,'foodOrders.html',{'orders':orders})
 
 
 #css file routing
@@ -168,24 +210,37 @@ def js_file(request):
 def logout(request):
     request.session.flush() #deleting user session 
     return redirect('home')
+# @csrf_exempt
 def login(request):
-    email=request.GET.get("email")
-    password=request.GET.get("password")
-    userData=Staffs.objects.filter(staffEmail=email).first()
+    email = request.GET.get("email")
+    password = request.GET.get("password")
+    userData = Staffs.objects.filter(staffEmail=email).first()
     if userData:
-    # return HttpResponse(userData)
         if userData.staffPassword == password:
-            request.session['staff_ID']=userData.staffID
-            return redirect("dashboard")
-        else :
+            request.session['staff_ID'] = userData.staffID
+            role = userData.role.strip().lower()
+            print(role)
+            if role in ["manager", "receptionist"]:
+                    return redirect("dashboard")
+            elif role == "chef":
+                    return redirect("foodOrders")
+            else:
+                    return redirect("home")
+        else:
             return HttpResponse("Password Not Matched")
-    else :
-        guestData=Guests.objects.filter(guestEmail=email).first()
-        if guestData.password==password:
-            request.session['user_ID']=guestData.guestID
+
+    else:
+        guestData = Guests.objects.filter(guestEmail=email).first()
+        if guestData and guestData.password == password:
+            request.session['user_ID'] = guestData.guestID
+
+            stayData = Stays.objects.filter(guestID=guestData.guestID, status="Unpaid").first()
+            if stayData:
+                request.session['stay_ID'] = stayData.stayID
             return redirect("home")
         else:
             return HttpResponse("Password is not Matched")
+
 
 @managerSession_required('staff_ID')
 @csrf_exempt
@@ -224,10 +279,67 @@ def filterRoom(request):
         else:
             rooms = Rooms.objects.filter(status=status,accomodation=accomodation,type=roomType)
         return render(request, "roomList.html", {"roomList": rooms})
+
+@managerSession_required('staff_ID')
+@csrf_exempt
+def acceptBooking(request):
+    if request.method == "POST":
+        roomID=request.POST.get('roomID')
+        roomData=Rooms.objects.get(pk=roomID)
+        bookingID=request.POST.get("bookingID")
+        acceptBooking=Bookings.objects.get(bookingID=bookingID)
+        acceptBooking.roomID=roomData
+        acceptBooking.save()
+        roomData.status="Booked"
+        roomData.save()
+        return redirect('bookingList')
+
+@managerSession_required('staff_ID')
+def deleteBooking(request,bookingID):
+    bookingData=Bookings.objects.get(bookingID=bookingID)
+    roomData = bookingData.roomID
+    roomData.status = "free"
+    roomData.save()
+    bookingData.delete()
+
+    return redirect("bookingList")
+
+@managerSession_required('staff_ID')
+def createStay(request,bookingID):
+    bookingData=Bookings.objects.get(bookingID=bookingID)
+    roomData = bookingData.roomID
+    roomData.status = "Unavailable"
+    roomData.save()
+    createStay=Stays.objects.create(check_in=bookingData.checkIn,check_out=bookingData.checkOut,guestID=bookingData.guestID,roomID=bookingData.roomID,guestCount=bookingData.guestCount,status="Unpaid")
+    createStay.save()
+    bookingData.delete()
+    return redirect("roomsList")
     
-@guestSession_required('user_ID')
+
+@staySession_required('stay_ID')
 @csrf_exempt
 def createOrder(request):
     if request.method == "POST":
         cart_data = request.POST.get("cart_data")
-        stay_ID=Stays.objects.filter(guestID=request.session['user_ID'])
+        items = json.loads(cart_data)
+        stayID=request.session['stay_ID']
+        allAmount=0
+        for data in items:
+            allAmount += int(data['price']) * int(data['qty'])
+        createOrder=Orders.objects.create(menuItems=items,amount=allAmount,stayID_id=stayID)
+        createOrder.save()
+        return redirect('guestProfile')
+
+@guestSession_required('user_ID')
+@csrf_exempt
+def createBooking(request):
+    if request.method == "POST":
+        guest_id = request.session['user_ID']
+        guest = Guests.objects.get(pk=guest_id)
+        guestCount=request.POST.get("guest_count")
+        roomType=request.POST.get("room_type")
+        checkIn=request.POST.get("check_in")
+        checkOut=request.POST.get("check_out")
+        createBooking=Bookings.objects.create(guestID=guest,guestCount=guestCount,roomType=roomType,checkIn=checkIn,checkOut=checkOut)
+        createBooking.save()
+        return redirect('guestProfile')

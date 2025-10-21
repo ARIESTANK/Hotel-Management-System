@@ -81,7 +81,13 @@
               <td>{{room.type}}</td>
               <td>{{room.accomodation}}</td>
               <td>{{room.price}}</td>
-              <td>{{room.status}}</td>
+              {% if room.status == "Booked" %}
+              <td><span class="badge bg-warning">{{room.status}}</span></td>
+              {% elif room.status == "Unavailable" %}
+              <td><span class="badge bg-danger">{{room.status}}</span></td>
+              {% else %}
+              <td><span class="badge bg-success">{{room.status}}</span></td>
+              {% endif %}
               <td class="text-center">
                 <button class="btn btn-success btn-sm"><i class="bi bi-pencil-square"></i></button>
                 <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
@@ -145,6 +151,7 @@
   </div>
 </div>
 </body>
+
 <script>
   // Room type prices
   const roomPrices = {

@@ -3,9 +3,10 @@ from django.urls import path
 import backend.views as views
 urlpatterns = [
     #api
-
+    path('api/rooms/<int:guestCount>/<str:roomType>',views.roomFilter,name="roomsFilter"),
     path("api/authGuest",views.authGuest,name="authGuest"),
     path('api/roomsData',views.roomsData,name="roomsData"),
+    path('api/authStays',views.authStay,name="authStay"),
     #file routing
     path('cssFile/',views.css_file,name="css_file"),
     path('js_File/', views.js_file, name='js_file'),
@@ -28,10 +29,15 @@ urlpatterns = [
     path('roomDetail/<str:roomType>',views.roomDetail,name="roomDetail"),
     path('guestProfile/',views.guestProfile,name="guestProfile"),
     path('roomsList/',views.roomList,name="roomsList"),
+    path('foodOrders/',views.foodOrders,name="foodOrders"),
 # functions
     path('logout/',views.logout,name="logout"),
     path('login/',views.login,name="login"),
     path('createRoom/',views.createRoom,name="createRoom"),
     path('filterRooms/',views.filterRoom,name="filterRoom"),
     path('createOrder/',views.createOrder,name="createOrder"),
+    path('createBooking/',views.createBooking,name="createBooking"),
+    path('acceptBooking/',views.acceptBooking,name="acceptBooking"),
+    path('deleteBooking/<int:bookingID>',views.deleteBooking,name='deleteBooking'),
+    path('createStay/<int:bookingID>',views.createStay,name='createStay'),
     ]

@@ -70,7 +70,7 @@
 <div class="booking-container">
   <h2 class="booking-title">🛎 Hotel Room Booking</h2>
 
-  <form method="POST">
+  <form method="POST" action="/createBooking/">
     {% csrf_token %}
 
     <!-- Guest Info -->
@@ -97,7 +97,7 @@
     <!-- Booking Details -->
     <h5 class="section-title mt-4">🛏 Booking Details</h5>
     <div class="row g-3">
-      <div class="col-md-6">
+      <div class="col-md-12">
         <label class="form-label">Room Type</label>
         <select class="form-select" name="room_type" required>
           <option value="">-- Select Room Type --</option>
@@ -107,19 +107,17 @@
           <option value="suite">Suite</option>
         </select>
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Number of Rooms</label>
-        <input type="number" name="room_count" class="form-control" min="1" value="1" required>
-      </div>
-
+     <div class="row">
       <div class="col-md-6">
         <label class="form-label">Check-in Date</label>
-        <input type="date" name="check_in" class="form-control" required>
+        <input type="date" name="check_in" id="check_in" class="form-control" required>
       </div>
       <div class="col-md-6">
         <label class="form-label">Check-out Date</label>
-        <input type="date" name="check_out" class="form-control" required>
+        <input type="date" name="check_out" id="check_out" class="form-control" required>
       </div>
+    </div>
+
     </div>
     <!-- Submit -->
     <div class="mt-4">
@@ -141,10 +139,51 @@
       document.getElementById("guest_email").value=data.guestEmail;
       document.getElementById("guest_name").value=data.guestName;
       document.getElementById("guest_phone").value=data.guestPh;
+      document.getElementById("guest_ID").value=data.guestID;
       console.log(data); // see data in console
     } catch (error) {
       console.error("Error loading guest:", error);
     }
   }
   getUserData()
+
+
+   // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
+  const checkInInput = document.getElementById('check_in');
+  const checkOutInput = document.getElementById('check_out');
+
+  // ✅ Step 1: Prevent past dates for check-in
+  checkInInput.setAttribute('min', today);
+
+  // ✅ Step 2: When check-in changes, update check-out min value
+  checkInInput.addEventListener('change', function() {
+    const checkInDate = this.value;
+    if (checkInDate) {
+      // Check-out must be at least 1 day after check-in
+      const nextDay = new Date(checkInDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nextDayStr = nextDay.toISOString().split('T')[0];
+
+      checkOutInput.min = nextDayStr;
+
+      // If the current check-out is earlier, reset it
+      if (checkOutInput.value < nextDayStr) {
+        checkOutInput.value = '';
+      }
+    }
+  });
+
+  // ✅ Step 3: Validate check-out when selected
+  checkOutInput.addEventListener('change', function() {
+    const checkInDate = new Date(checkInInput.value);
+    const checkOutDate = new Date(this.value);
+
+    if (checkOutDate <= checkInDate) {
+      alert("Check-out date must be later than check-in date!");
+      this.value = '';
+    }
+  });
+
 </script>
