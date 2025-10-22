@@ -1,0 +1,80 @@
+{% include './staffHeader.html' %}
+<style>
+.tableClass {
+  margin-left: 5%;
+  margin-right: 5%;
+  padding-left: 3%;
+  padding-right: 3%;
+  padding-top: 2%;
+  padding-bottom: 5%;
+  -webkit-box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+  box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+}
+</style>
+
+<div class="mt-5 tableClass">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold">🏨 Stay Management</h3>
+    <a href="/createStayPage/"><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStayModal">
+      ➕ Create Stay
+    </button></a>
+  </div>
+
+  <!-- Search -->
+  <div class="mb-3">
+    <input type="text" id="searchInput" class="form-control" placeholder="Search guest or room...">
+  </div>
+
+  <!-- Stay Table -->
+  <table class="table table-striped table-hover">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Stay ID</th>
+        <th>Guest Name</th>
+        <th>Room Code</th>
+        <th>Check-In</th>
+        <th>Check-Out</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody class="text-center" id="stayTable">
+      {% for stay in stays %}
+      <tr>
+        <td>{{ stay.stayID }}</td>
+        <td>{{ stay.guestID.guestName }}</td>
+        <td>{{stay.roomID.building}}-{{ stay.roomID.roomCode }}</td>
+        <td>{{ stay.check_in }}</td>
+        <td>{{ stay.check_out }}</td>
+        <td>
+          {% if stay.check_out > today %}
+          <span class="badge bg-danger">Time Out</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+          {% endif %}
+        </td>
+        <td>
+          <button class="btn btn-info btn-sm">View</button>
+          <button class="btn btn-danger btn-sm">Delete</button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-muted">No stays found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+<script>
+  // 🔍 Search Function
+  document.getElementById('searchInput').addEventListener('keyup', () => {
+    const filter = event.target.value.toLowerCase();
+    const rows = document.querySelectorAll("#stayTable tr");
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+</script>

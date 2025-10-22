@@ -1,0 +1,141 @@
+{% include './header.html' %}
+<style>
+.container-service {
+  max-width: 850px;
+  margin: 100px auto;
+  background: #fff;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.service-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 25px 15px;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+.service-icon {
+  font-size: 35px;
+  color: #0d6efd;
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+.btn-custom {
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 25px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+  background-color: #0b5ed7;
+}
+</style>
+
+<div class="container-service ">
+  <h2 class="text-center mb-4 fw-bold">🛎️ Request a Service</h2>
+  <p class="text-center text-muted mb-5">Need something? Let us know below and our staff will assist you shortly.</p>
+
+  <div class="row text-center">
+    <div class="col-md-3 mb-4">
+      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Housekeeping">
+        <div class="service-icon mb-2"><i class="bi bi-broom"></i></div>
+        <h6>Housekeeping</h6>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Laundry">
+        <div class="service-icon mb-2"><i class="bi bi-basket2"></i></div>
+        <h6>Laundry</h6>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Food">
+        <div class="service-icon mb-2"><i class="bi bi-egg-fried"></i></div>
+        <h6>Food Order</h6>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Maintenance">
+        <div class="service-icon mb-2"><i class="bi bi-tools"></i></div>
+        <h6>Maintenance</h6>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content p-3">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="serviceModalLabel">Request Service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="/createRequest/">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Service Type</label>
+            <input type="text" class="form-control" id="serviceType" name="serviceType" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Room Number</label>
+            <input type="hidden" class="form-control" id="roomID" name="roomID" readonly>
+            <input type="text" class="form-control" id="roomNumber"  readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Additional Notes</label>
+            <textarea class="form-control" name="note" rows="3" placeholder="Add details..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-custom w-100">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Set selected service name in modal
+  const serviceCards = document.querySelectorAll('.service-card');
+  const serviceTypeInput = document.getElementById('serviceType');
+  const modalTitle = document.getElementById('serviceModalLabel');
+
+  serviceCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const service = card.getAttribute('data-service');
+      serviceTypeInput.value = service;
+      modalTitle.textContent = `Request ${service}`;
+    });
+  });
+
+  async function fetchAuthStay() {
+    const response=await fetch('http://192.168.100.11:8000/api/authStays')
+    const authStay=await response.json()
+    if(authStay){
+        document.getElementById('roomNumber').value=`${authStay.room.building}-${authStay.room.roomCode}`
+        document.getElementById('roomID').value=`${authStay.roomID}`
+    }
+  }
+  fetchAuthStay()
+
+</script>

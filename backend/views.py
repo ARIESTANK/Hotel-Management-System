@@ -8,11 +8,12 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders
+from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders,Services
 from backend.decorators  import managerSession_required,staffSession_required,guestSession_required,staySession_required,ChefSession_required
 from .serializers import StaffsSerializer,GuestsSerializer,RoomSerializer,StaysSerializer
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from datetime import date
 
 # Create your views here.
 
@@ -29,11 +30,23 @@ def authGuest(request):
 
 @api_view(['GET'])
 def authStay(request):
-    stayData=StaysSerializer(Stays.objects.get(stayID=request.session['stay_ID']))
-    if stayData:
-        return Response(stayData.data)
-    else:
-        return Response("No AUth Stay")
+    try:
+        stay = Stays.objects.get(stayID=request.session['stay_ID'])
+        stayData = StaysSerializer(stay).data
+
+        room = stay.roomID
+        stayData['room'] = {
+            'roomID': room.roomID,
+            'roomCode': room.roomCode,
+            'building':room.building,
+            'type': room.type,
+            'price': room.price,
+            'status': room.status
+        }
+
+        return Response(stayData)
+    except Stays.DoesNotExist:
+        return Response({"message": "No Auth Stay"}, status=404)
 
 
 #Room Type Descriptions
@@ -78,6 +91,9 @@ def roomFilter(request,guestCount,roomType):
 #login page 
 def loginPage(request):
     return render(request,'login.html')
+#signup page
+def signupPage(request):
+    return render(request,'signup.html')
 #home page route
 def home(request):
     return render(request, "home.html")
@@ -121,7 +137,15 @@ def categoryMenu(request, type):
 def contact_us(request):
     return render(request,"contact_us.html")
 
+#create Stay Page
+def createStayPage(request):
+    return render(request,'createStay.html')
 
+#Stay Lists
+def stayList(request):
+    stays=Stays.objects.all()
+    today = date.today()
+    return render(request,'stayList.html',{"stays":stays,"today":today})
 #booking page route
 @guestSession_required('user_ID')
 def booking(request):
@@ -129,16 +153,24 @@ def booking(request):
 @guestSession_required('user_ID')
 def roomDetail(request,roomType):
     return render(request,'roomDetail.html')
+
 @guestSession_required('user_ID')
 def guestProfile(request):
     guestID=request.session['user_ID']
-    stayID=request.session['stay_ID']
-    stay=Stays.objects.get(pk=stayID)
-    orders=Orders.objects.filter(stayID=stay)
+    stayID=request.session.get('stay_ID')
     guest=Guests.objects.get(pk=guestID)
     bookings=Bookings.objects.filter(guestID=guest)
-    return render(request,'guestProfile.html',{'bookings':bookings,'orders':orders})
-
+    if stayID:
+        stay=Stays.objects.get(pk=stayID)
+        orders=Orders.objects.filter(stayID=stay)
+        services=Services.objects.filter(stayID=stay)
+        return render(request,'guestProfile.html',{'bookings':bookings,'orders':orders,'services':services})
+    else :
+        return render(request,'guestProfile.html',{'bookings':bookings,'orders':[],'services':[]})
+    
+@staySession_required('user_ID')
+def serviceRequestPage(request):
+    return render(request,"serviceRequest.html")
 #bookingList route
 @managerSession_required('staff_ID')
 def bookingList(request):
@@ -147,11 +179,21 @@ def bookingList(request):
 #service requests List
 @managerSession_required('staff_ID')
 def servicesList(request):
-    return render(request,"service.html")
+    services=Services.objects.all()
+    for service in services:
+        stay = service.stayID
+        if stay:
+                # Get the room linked to this stay
+            room = Rooms.objects.filter(pk=stay.roomID_id).first()
+            if room:                    # Attach roomCode to the order object dynamically
+                service.building = room.building
+                service.room_code = room.roomCode
+    return render(request,"service.html",{'services':services})
 #guestList 
 @managerSession_required('staff_ID')
 def guestList(request):
-    return render(request,"guest.html")
+    guests=Guests.objects.all()
+    return render(request,"guest.html",{'guests':guests})
 #staffList
 @managerSession_required('staff_ID')
 def staffList(request):
@@ -190,6 +232,26 @@ def foodOrders(request):
             order.room_code = "N/A"
     return render(request,'foodOrders.html',{'orders':orders})
 
+@ChefSession_required('staff_ID')
+def foodOrdersWithState(request,state):
+    orders=Orders.objects.filter(status=state)
+    for order in orders:
+        # Get the stay linked to this order
+        stay = Stays.objects.filter(pk=order.stayID_id).first()
+        if stay:
+            # Get the room linked to this stay
+            room = Rooms.objects.filter(pk=stay.roomID_id).first()
+            if room:
+                # Attach roomCode to the order object dynamically
+                order.building = room.building
+                order.room_code = room.roomCode
+            else:
+                order.building = "N/A"
+                order.room_code = "N/A"
+        else:
+            order.building = "N/A"
+            order.room_code = "N/A"
+    return render(request,'foodOrders.html',{'orders':orders})
 
 #css file routing
 def css_file(request):
@@ -206,11 +268,27 @@ def js_file(request):
 
 
 #functions
+def signup(request):
+    email = request.GET.get("email")
+    password = request.GET.get("password")
+    confirm = request.GET.get("confirm")
+    name = request.GET.get("fullname")
+    nrc = request.GET.get("nrc")
+
+    # in production -> add email unique and password don't match return message 
+    if password==confirm:
+        guestCreate=Guests.objects.create(guestName=name,guestEmail=email,password=password,guestNRC=nrc)
+        guestCreate.save()
+        guestData=Guests.objects.filter(guestName=name,guestEmail=email).first()
+        request.session["user_ID"] = guestData.guestID
+    return redirect("home")
+
+
 
 def logout(request):
     request.session.flush() #deleting user session 
     return redirect('home')
-# @csrf_exempt
+
 def login(request):
     email = request.GET.get("email")
     password = request.GET.get("password")
@@ -326,7 +404,7 @@ def createOrder(request):
         allAmount=0
         for data in items:
             allAmount += int(data['price']) * int(data['qty'])
-        createOrder=Orders.objects.create(menuItems=items,amount=allAmount,stayID_id=stayID)
+        createOrder=Orders.objects.create(menuItems=items,amount=allAmount,stayID_id=stayID,status="Pending")
         createOrder.save()
         return redirect('guestProfile')
 
@@ -343,3 +421,36 @@ def createBooking(request):
         createBooking=Bookings.objects.create(guestID=guest,guestCount=guestCount,roomType=roomType,checkIn=checkIn,checkOut=checkOut)
         createBooking.save()
         return redirect('guestProfile')
+
+@ChefSession_required('staff_ID')
+def changeState(request,orderID,state):
+    orderData=Orders.objects.get(pk=orderID)
+    if orderData:
+        orderData.status=state
+        orderData.save()
+    return redirect('foodOrders')
+
+@managerSession_required('staff_ID')
+def createStay(request):
+    if request.method=="POST":
+        guestEmail=request.POST.get("guestEmail")
+        guestData=Guests.objects.filter(guestEmail=guestEmail).first()
+        guestCount=request.POST.get("accomodation")
+        roomID=request.POST.get("roomID")
+        room = Rooms.objects.get(pk=roomID)
+        check_in=request.POST.get("check_in")
+        check_out=request.POST.get("check_out")
+        createStay=Stays.objects.create(guestID=guestData,guestCount=guestCount,roomID=room,check_in=check_in,check_out=check_out,status="Unpaid")
+        createStay.save()
+    return redirect('stayList')
+
+@staySession_required('user_ID')
+def createRequest(request):
+    if request.method=="POST":
+        type=request.POST.get("serviceType")
+        stayID=request.session.get('stay_ID')
+        stay = Stays.objects.get(pk=stayID)
+        note=request.POST.get("note")
+        createRequest=Services.objects.create(type=type,stayID=stay,note=note,status="Pending")
+        createRequest.save()
+        return redirect("guestProfile")

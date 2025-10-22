@@ -119,6 +119,7 @@ class Services(models.Model):
     status=models.CharField(max_length=100,choices=state)
     stayID=models.ForeignKey(Stays,on_delete=models.CASCADE,db_column="stayID")
     staffID=models.ForeignKey(Staffs,null=True,on_delete=models.CASCADE,db_column="staffID")
+    note=models.TextField(blank=True,null=True,)
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -128,6 +129,7 @@ class Services(models.Model):
             'status':self.status,
             'stayID':self.stay.stayID if self.stay else "",
             'staffID':self.staff.staffID if self.staff else "",
+            'note':self.note,
             'create_at':self.created_at,
         })
 #  menu Items

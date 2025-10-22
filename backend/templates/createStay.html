@@ -1,0 +1,158 @@
+{% include './staffHeader.html' %}
+
+<style>
+.container-box {
+  max-width: 800px;
+  margin: 4% auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+}
+.form-title {
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+</style>
+
+<div class="container-box">
+  <h3 class="form-title text-center text-primary">🏨 Create New Stay</h3>
+
+  <form method="POST" action="/createStay/" id="createStayForm">
+    {% csrf_token %}
+
+    <!-- Guest -->
+    <div class="mb-3">
+      <label class="form-label">Guest Email</label>
+      <input type="email" class="form-control" name="guestEmail" placeholder="user Email" aria-label="Recipient's username" aria-describedby="basic-addon2">
+    </div>
+
+    <!-- Room Type -->
+    <div class="mb-3">
+      <label class="form-label">Room Type</label>
+      <select class="form-select" id="roomType" name="type" required>
+        <option value="" selected disabled>-- Select Room Type --</option>
+        <option value="Deluxe">Deluxe</option>
+        <option value="Premium">Premium</option>
+        <option value="Standard">Standard</option>
+        <option value="Suite">Suite</option>
+      </select>
+    </div>
+
+    <!-- Room Size -->
+    <div class="mb-3">
+      <label class="form-label">Room Size</label>
+      <select class="form-select" id="roomSize" name="accomodation" required>
+        <option value="" selected disabled>-- Select Room Size --</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+
+    <!-- Room Code -->
+    <div class="mb-3">
+      <label class="form-label">Available Room</label>
+      <select class="form-select" name="roomID" id="roomCode" required>
+        <option value="" selected disabled>-- Select Room Code --</option>
+      </select>
+    </div>
+
+    <!-- Check In/Out -->
+     <div class="row mb-5">
+      <div class="col-md-6">
+        <label class="form-label">Check-in Date</label>
+        <input type="date" name="check_in" id="check_in" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Check-out Date</label>
+        <input type="date" name="check_out" id="check_out" class="form-control" required>
+      </div>
+    </div>
+
+  
+    <!-- Submit -->
+    <div class="d-flex justify-content-between align-items-center">
+      <a href="{% url 'stayList' %}" class="btn btn-secondary">← Back to List</a>
+      <button type="submit" class="btn btn-success px-4">✅ Create Stay</button>
+    </div>
+  </form>
+</div>
+
+<script>
+
+// When room type is chose
+
+const roomTypeSelect = document.getElementById('roomType');
+const roomSizeSelect = document.getElementById('roomSize');
+
+async function logSelection() {
+  const type = roomTypeSelect.value;
+  const size = roomSizeSelect.value;
+
+  // Only log if both are selected
+  if (type && size) {
+    const response=await fetch(`http://192.168.100.11:8000/api/rooms/${size}/${type}`)
+    if(response){
+        const data=await response.json()
+        document.getElementById('roomCode').innerHTML=""
+        if(data.length>0){
+            data.forEach(element => {
+                document.getElementById('roomCode').innerHTML+=`<option value=${element.roomID}>${element.building}-${element.roomCode}</option>`
+            });
+        }
+    }
+  }
+}
+
+// Listen to both dropdowns
+roomTypeSelect.addEventListener('change', logSelection);
+roomSizeSelect.addEventListener('change', logSelection);
+
+
+
+ const today = new Date().toISOString().split('T')[0];
+
+  const checkInInput = document.getElementById('check_in');
+  const checkOutInput = document.getElementById('check_out');
+
+  // ✅ Step 1: Prevent past dates for check-in
+  checkInInput.setAttribute('min', today);
+
+  // ✅ Step 2: When check-in changes, update check-out min value
+  checkInInput.addEventListener('change', function() {
+    const checkInDate = this.value;
+    if (checkInDate) {
+      // Check-out must be at least 1 day after check-in
+      const nextDay = new Date(checkInDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const nextDayStr = nextDay.toISOString().split('T')[0];
+
+      checkOutInput.min = nextDayStr;
+
+      // If the current check-out is earlier, reset it
+      if (checkOutInput.value < nextDayStr) {
+        checkOutInput.value = '';
+      }
+    }
+  });
+
+  // ✅ Step 3: Validate check-out when selected
+  checkOutInput.addEventListener('change', function() {
+    const checkInDate = new Date(checkInInput.value);
+    const checkOutDate = new Date(this.value);
+
+    if (checkOutDate <= checkInDate) {
+      alert("Check-out date must be later than check-in date!");
+      this.value = '';
+    }
+  });
+
+</script>
