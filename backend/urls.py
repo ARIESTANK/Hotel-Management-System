@@ -5,8 +5,12 @@ urlpatterns = [
     #api
     path('api/rooms/<int:guestCount>/<str:roomType>',views.roomFilter,name="roomsFilter"),
     path("api/authGuest",views.authGuest,name="authGuest"),
+    path("api/authStaff",views.authStaff,name="authStaff"),
+    path("api/StaffByRole/<str:role>",views.StaffByRole,name="StaffByRole"),
     path('api/roomsData',views.roomsData,name="roomsData"),
     path('api/authStays',views.authStay,name="authStay"),
+    path('api/stay/<int:stayID>/services',views.stayServiceData,name="stayServiceData"),
+    path('api/stay/<int:stayID>/orders',views.stayOrderData,name="stayOrderData"),
     #file routing
     path('cssFile/',views.css_file,name="css_file"),
     path('js_File/', views.js_file, name='js_file'),
@@ -32,6 +36,7 @@ urlpatterns = [
     path('roomsList/',views.roomList,name="roomsList"),
     path('foodOrders/',views.foodOrders,name="foodOrders"),
     path('foodOrders/<str:state>/',views.foodOrdersWithState,name="foodOrderswithState"),
+    path('serviceOrders/',views.serviceOrders,name="serviceOrders"),
     path('stayList/',views.stayList,name="stayList"),
     path('createStayPage/',views.createStayPage,name="createStayPage"),
     path('serviceRequestPage/',views.serviceRequestPage,name="serviceRequestPage"),
@@ -49,4 +54,7 @@ urlpatterns = [
     path('changeState/<str:state>/<int:orderID>',views.changeState,name="changeState"),
     path('createStay/',views.createStay,name="createStay"),
     path('createRequest/',views.createRequest,name="createRequest"),
+    path('createStaff/',views.createStaff,name="createStaff"),
+    path('assignStaff/',views.assignStaff,name="assignStaff"),
+    path('endStay/<int:stayID>',views.endStay,name="endStay")
     ]

@@ -11,6 +11,7 @@ class Staffs(models.Model):
     roles=[('manager','Manager'),('Kitchen Staff','kitchen staff'),('HouseKeeping','housekeeping'),('receptionist','Receptionist')]
     role=models.CharField(max_length=255,choices=roles,default="staff")
     payRoll=models.IntegerField(default=0)
+    status=models.CharField(max_length=255,default="free")
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -19,6 +20,7 @@ class Staffs(models.Model):
             'staffName':self.staffName,
             'staffEmail':self.staffEmail,
             'staffPassword':self.staffPassword,
+            'status':self.status,
             'role':self.role,   
         })
 

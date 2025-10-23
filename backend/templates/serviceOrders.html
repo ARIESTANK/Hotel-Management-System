@@ -53,62 +53,48 @@
 </nav>
 
 <!-- Orders List -->
-<div class="container py-4">
-  <h2 class="mb-4 text-center">Food Orders List</h2>
-  <ul class="nav nav-tabs mb-3">
-  <li class="nav-item"><a class="nav-link active"  href="/foodOrders/">All</a></li>
-  <li class="nav-item"><a class="nav-link"  href="/foodOrders/Pending/">Pending</a></li>
-  <li class="nav-item"><a class="nav-link"  href="/foodOrders/Cooking/">Cooking</a></li>
-  <li class="nav-item"><a class="nav-link"  href="/foodOrders/Delivered/">Delivered</a></li>
-</ul>
-
-  <div class="row g-4">
-    {% for order in orders %}
+  <div class="row g-4 m-3">
+    {% for service in services %}
     <div class="col-md-6 col-lg-4">
       <div class="card order-card p-3">
   <div class="d-flex justify-content-between align-items-center mb-2">
-    <h5 class="fw-bold text-primary">Order #{{ order.orderID }}</h5>
-    <span class="text-muted">{{ order.created_at|date:"M d, Y H:i" }}</span>
+    <h5 class="fw-bold text-primary">Order #{{ service.serviceID }}</h5>
+    <span class="text-muted">{{ service.created_at|date:"M d, Y H:i" }}</span>
   </div>
 
   <!-- Room Code -->
   <div class="mb-3 d-flex justify-content-between">
     <h6 class="fw-semibold">Room:</h6>
-    <span class="badge bg-secondary">{{order.building}}-{{ order.room_code }}</span>
+    <span class="badge bg-secondary">{{ service.building }}-{{ service.room_code }}</span>
   </div>
 
-  <!-- Menu Items -->
+ 
+
+  <!-- 📝 Notes Section -->
+  {% if service.note %}
   <div class="mb-3">
-    <h6 class="fw-semibold">Items:</h6>
-    <div class="d-flex flex-wrap gap-2">
-      {% for item in order.menuItems %}
-      <span class="badge bg-info text-dark badge-qty">
-        {{ item.name }} x{{ item.qty }}
-      </span>
-      {% endfor %}
+    <h6 class="fw-semibold text-muted">Notes:</h6>
+    <div class="p-2 bg-light border rounded text-secondary small">
+      {{ service.note }}
     </div>
   </div>
+  {% endif %}
 
   <div class="d-flex justify-content-between align-items-center">
-    <span class="fw-bold text-success">Total: ${{ order.amount|floatformat:2 }}</span>
     <span>
-      {% if order.status == "Pending" %}
-      <span class="badge bg-warning text-dark">Pending</span>
-      {% elif order.status == "Cooking" %}
-      <span class="badge bg-primary">In Progress</span>
-      {% elif order.status == "Delivered" %}
+      {% if service.status == "Assigned" %}
+      <span class="badge bg-primary">Assigned</span>
+      {% elif service.status == "Completed" %}
       <span class="badge bg-success">Completed</span>
       {% endif %}
     </span>
   </div>
 
-  {% if order.status == "Pending" %}
+  {% if service.status == "Assigned" %}
   <div class="mt-3 d-flex gap-2">
-    <a href="/changeState/Cooking/{{order.orderID}}" class="btn btn-sm btn-primary flex-fill">Start Cooking</a>
-  </div>
-  {% elif order.status == "Cooking" %}
-  <div class="mt-3 d-flex gap-2">
-    <a href="/changeState/Delivered/{{order.orderID}}" class="btn btn-sm btn-success flex-fill">Mark Completed</a>
+    <a href="/changeState/Completed/{{ service.serviceID }}" class="btn btn-sm btn-success flex-fill">
+      Mark Completed
+    </a>
   </div>
   {% endif %}
 </div>

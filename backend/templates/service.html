@@ -20,7 +20,7 @@
 }
 
 .badge-pending { background: yellow; color: #842029; }
-.badge-progress { background: blue; color: #664d03; }
+.badge-progress { background: blue; color: white; }
 .badge-completed { background: green; color: white; }
 
 #searchInput {
@@ -57,8 +57,8 @@
         <td>
           {% if service.status == "Pending" %}
             <span class="badge-status badge-pending">Pending</span>
-          {% elif service.status == "Cooking" or service.status == "In Progress" %}
-            <span class="badge-status badge-progress">In Progress</span>
+          {% elif service.status == "Assigned" %}
+            <span class="badge-status badge-progress">Assigned</span>
           {% else %}
             <span class="badge-status badge-completed">Completed</span>
           {% endif %}
@@ -73,17 +73,20 @@
             <span class="text-muted fst-italic">Unassigned</span>
           {% endif %}
         </td>
+       {% if service.status == "Pending" %}
         <td>
           <button class="btn btn-outline-success btn-sm assign-btn" 
                   data-bs-toggle="modal" 
                   data-bs-target="#assignStaffModal"
-                  data-service="{{service.serviceID}}">
+                  data-service="{{service.serviceID}}"
+                  onclick="fetchStaffs('{{service.type}}')">
             <i class="bi bi-person-plus"></i> Assign
           </button>
           <button class="btn btn-outline-danger btn-sm">
             <i class="bi bi-trash3-fill"></i> Delete
           </button>
         </td>
+        {% endif %}
       </tr>
       {% empty %}
       <tr>
@@ -106,18 +109,15 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <form id="assignStaffForm" method="POST" action="assignStaff/">
+      <form id="assignStaffForm" method="POST" action="/assignStaff/">
         {% csrf_token %}
         <div class="modal-body">
           <input type="hidden" name="serviceID" id="selectedServiceID">
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Select Staff</label>
-            <select class="form-select" name="staffID" required>
-              <option value="" disabled selected>-- Select Staff --</option>
-              {% for staff in staffs %}
-                <option value="{{staff.staffID}}">{{staff.staffName}} ({{staff.position}})</option>
-              {% endfor %}
+            <select class="form-select" name="staffID" id="staffs" required>
+              
             </select>
           </div>
         </div>
@@ -148,4 +148,38 @@ document.querySelectorAll('.assign-btn').forEach(btn => {
     document.getElementById('selectedServiceID').value = serviceID;
   });
 });
+
+async function fetchStaffs(serviceType) {
+  console.log("Fetching staff for:", serviceType);
+
+  // Optional: auto-map service types to staff roles
+ 
+
+  try {
+    const response = await fetch(`http://192.168.100.11:8000/api/StaffByRole/${serviceType}`);
+    const staffs = await response.json();
+    console.log("Staffs fetched:", staffs);
+
+    // Wait for modal to open to ensure element exists
+    const checkExist = setInterval(() => {
+      const staffSelect = document.querySelector('#assignStaffModal #staffs');
+      if (staffSelect) {
+        clearInterval(checkExist);
+
+        staffSelect.innerHTML = `<option value="" disabled selected>-- Select Staff --</option>`;
+
+        if (Array.isArray(staffs) && staffs.length > 0) {
+          staffs.forEach(staff => {
+            staffSelect.innerHTML += `<option value="${staff.staffID}">${staff.staffName}</option>`;
+          });
+        } else {
+          staffSelect.innerHTML += `<option disabled>No staff available</option>`;
+        }
+      }
+    }, 100); // wait a bit until modal DOM appears
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+  }
+}
 </script>
+

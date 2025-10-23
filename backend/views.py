@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders,Services
 from backend.decorators  import managerSession_required,staffSession_required,guestSession_required,staySession_required,ChefSession_required
-from .serializers import StaffsSerializer,GuestsSerializer,RoomSerializer,StaysSerializer
+from .serializers import StaffsSerializer,GuestsSerializer,RoomSerializer,StaysSerializer,ServiceSerializer,OrdersSerializer
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
@@ -27,6 +27,29 @@ def authGuest(request):
         return Response(guestData.data)
     else:
         return Response("No AUth User")
+    
+@api_view(['GET'])
+def authStaff(request):
+    staffData=StaffsSerializer(Staffs.objects.get(staffID=request.session['staff_ID']))
+    if staffData:
+        return Response(staffData.data)
+    else:
+        return Response("No AUth User")
+    
+@api_view(['GET'])
+def StaffByRole(request, role):
+    if role in ["Cleaning", "Room Cleaning", "Laundry","Housekeeping"]:
+        role = "Housekeeping"
+        staffData = Staffs.objects.filter(role=role,status="free")
+    else:
+        staffData = Staffs.objects.filter(role="Others",status="free")
+
+    serializer = StaffsSerializer(staffData, many=True)  # 👈 ADD many=True
+
+    if staffData.exists():
+        return Response(serializer.data)
+    else:
+        return Response({"message": "No Auth User"})
 
 @api_view(['GET'])
 def authStay(request):
@@ -86,7 +109,17 @@ def roomFilter(request,guestCount,roomType):
     serializer = RoomSerializer(filteredRooms, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def stayServiceData(request,stayID):
+    serviceData=Services.objects.filter(stayID=stayID)
+    serializer = ServiceSerializer(serviceData, many=True)
+    return Response(serializer.data)
 
+@api_view(['GET'])
+def stayOrderData(request,stayID):
+    serviceData=Orders.objects.filter(stayID=stayID)
+    serializer = OrdersSerializer(serviceData, many=True)
+    return Response(serializer.data)
 
 #login page 
 def loginPage(request):
@@ -197,7 +230,8 @@ def guestList(request):
 #staffList
 @managerSession_required('staff_ID')
 def staffList(request):
-    return render(request,"staffs.html")
+    staffs=Staffs.objects.all()
+    return render(request,"staffs.html",{'staffs':staffs})
 #staff Profile ROute
 @staffSession_required("staff_ID")
 def staffProfile(request):
@@ -206,7 +240,10 @@ def staffProfile(request):
 @managerSession_required('staff_ID')
 def dashboard(request):
     bookings = Bookings.objects.all().order_by('created_at')[:5]
-    return render(request,"dashboard.html",{'bookings':bookings})
+    bookingCount=Bookings.objects.count()
+    guestCount=Guests.objects.count()
+    staffCount=Staffs.objects.count()
+    return render(request,"dashboard.html",{'bookings':bookings,'bookingCount':bookingCount,'staffCount':staffCount,'guestCount':guestCount})
 @managerSession_required('staff_ID')
 def roomList(request):
     roomList=Rooms.objects.all()
@@ -302,6 +339,8 @@ def login(request):
                     return redirect("dashboard")
             elif role == "chef":
                     return redirect("foodOrders")
+            elif role == "housekeeping" or role == "others" :
+                    return redirect("serviceOrders")
             else:
                     return redirect("home")
         else:
@@ -422,13 +461,22 @@ def createBooking(request):
         createBooking.save()
         return redirect('guestProfile')
 
-@ChefSession_required('staff_ID')
+@staffSession_required('staff_ID')
 def changeState(request,orderID,state):
-    orderData=Orders.objects.get(pk=orderID)
-    if orderData:
-        orderData.status=state
-        orderData.save()
-    return redirect('foodOrders')
+    if state == "Completed":    
+        serviceData=Services.objects.get(pk=orderID)
+        serviceData.status=state
+        staff=Staffs.objects.get(pk=request.session.get('staff_ID'))
+        staff.status="free"
+        staff.save()
+        serviceData.save()
+        return redirect('serviceOrders')
+    else:
+        orderData=Orders.objects.get(pk=orderID)
+        if orderData:
+            orderData.status=state
+            orderData.save()
+        return redirect('foodOrders')
 
 @managerSession_required('staff_ID')
 def createStay(request):
@@ -454,3 +502,64 @@ def createRequest(request):
         createRequest=Services.objects.create(type=type,stayID=stay,note=note,status="Pending")
         createRequest.save()
         return redirect("guestProfile")
+
+@managerSession_required('staff_ID')
+def createStaff(request):
+    if request.method=="POST":
+        staffName=request.POST.get("staffName")
+        staffEmail=request.POST.get("staffEmail")
+        staffPassword=request.POST.get("password")
+        role=request.POST.get("role")
+        payRoll=request.POST.get("payRoll")
+
+        createStaff=Staffs.objects.create(staffName=staffName,staffEmail=staffEmail,staffPassword=staffPassword,role=role,payRoll=payRoll)
+        createStaff.save()
+    return redirect("staffs")
+
+@managerSession_required('staff_ID')
+def assignStaff(request):
+    if request.method == "POST":
+        staffID = request.POST.get("staffID")
+        serviceID = request.POST.get("serviceID")
+
+        # ✅ get the actual Staff instance
+        staff = Staffs.objects.get(pk=staffID)
+        staff.status = "Busy"
+        staff.save()
+
+        # ✅ get the Service instance
+        service = Services.objects.get(pk=serviceID)
+        service.status = "Assigned"
+        service.staffID = staff  # must assign object, not ID
+        service.save()
+
+    return redirect('servicesList')
+
+@staffSession_required('staff_ID')
+def serviceOrders(request):
+    staffData = Staffs.objects.get(pk=request.session.get('staff_ID'))
+    services = Services.objects.filter(staffID=staffData)
+
+    for service in services:
+        stay = service.stayID  # ✅ stay is already a Stays object
+        if stay and stay.roomID:
+            room = stay.roomID  # ✅ roomID is already a Rooms object
+            service.building = room.building
+            service.room_code = room.roomCode
+        else:
+            service.building = "N/A"
+            service.room_code = "N/A"
+
+    return render(request, 'serviceOrders.html', {'services': services})
+
+@managerSession_required('staff_ID')
+def endStay(request,stayID):
+    orders=Orders.objects.filter(stayID=stayID)
+    totalAmount=0
+    for order in orders:
+        totalAmount+=order.amount
+    orders.delete()
+    services=Services.objects.filter(stayID=stayID)
+    services.delete()
+
+    ####ဆက်ရေးရန်

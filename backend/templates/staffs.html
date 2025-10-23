@@ -1,124 +1,169 @@
 {% include './staffHeader.html' %}
 <style>
-.tableClass{
-    margin-left: 5%;
-    margin-right: 5%;
-    padding-left: 3%;
-    padding-right: 3%;
-    padding-top: 2%;
-    padding-bottom: 5%;
-    -webkit-box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86); 
-    box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+body {
+  background-color: #f8f9fa;
 }
-.input{
-    float:right;
-    margin-bottom: 3%;
+
+.table-wrapper {
+  margin: 3% auto;
+  width: 90%;
+  background: white;
+  border-radius: 15px;
+  padding: 2%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.table thead {
+  background: linear-gradient(135deg, #007bff, #6610f2);
+  color: white;
+}
+
+.table tbody tr:hover {
+  background-color: #f2f6fc;
+  transition: 0.3s;
+}
+
+.search-box {
+  display: flex;
+  gap: 1rem;
+}
+
+.search-box input {
+  width: 300px;
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  transition: all 0.3s ease-in-out;
+}
+
+.search-box input:focus {
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+  border-color: #007bff;
+}
+
+.btn {
+  border-radius: 8px;
+}
+
+.empty-message {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
 }
 </style>
-<div class="mt-5 tableClass">
-<table class="table">
-   <div class="mb-3">
-    <input type="text" id="searchInput" class="form-control" placeholder="Search Staffs by name...">
+
+<div class="table-wrapper mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary mb-0"><i class="bi bi-people-fill"></i> Staff Management</h4>
+    <div class="search-box">
+      <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search staff by name...">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+        <i class="bi bi-person-plus-fill"></i> Add Staff
+      </button>
+    </div>
   </div>
-  <thead class="thead-dark">
-    <tr class="text-center">
-      <th scope="col">Staff ID</th>
-      <th scope="col">Staff Name</th>
-      <th scope="col">Staff Email</th>
-      <th scope="col">Staff Role</th>
-      <th scope="col">Staff Enrollment Date</th>
-      <th scope="col">payRoll</th>
-      <th scope="col">Action</th>
-    </tr>
-  </thead>
-  <tbody class="text-center">
-    <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-      <td>@mdo</td>
-      <td>@mdo</td>
-      <td>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
-      </td>
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Jacob</td>
-      <td>Thornton</td>
-      <td>@fat</td>
-      <td>@mdo</td>
-      <td>@mdo</td>
-      <td>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button></td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td>Larry</td>
-      <td>the Bird</td>
-      <td>@twitter</td>
-      <td>@mdo</td>
-      <td>@mdo</td>
-      <td>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editStaffModal"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></button>
-        <button class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button></td>
-    </tr>
-  </tbody>
-</table>
 
-
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr class="text-center">
+        <th>Staff ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Joined On</th>
+        <th>Payroll (MMK)</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="staffTableBody" class="text-center">
+      {% for staff in staffs %}
+      <tr>
+        <td>{{ staff.staffID }}</td>
+        <td class="fw-semibold text-primary">{{ staff.staffName }}</td>
+        <td>{{ staff.staffEmail }}</td>
+        <td><span class="badge bg-info text-dark">{{ staff.role }}</span></td>
+        <td>{{ staff.created_at|date:"Y-m-d" }}</td>
+        <td>{{ staff.payRoll|default:"-" }}</td>
+        {% if staff.status == "free" %}
+        <td><span class="badge bg-success">{{staff.status}}</span></td>
+        {% else %}
+        <td><span class="badge bg-danger">{{staff.status}}</span></td>
+        {% endif %}
+        <td>
+          <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#editStaffModal" data-id="{{staff.staffID}}">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="empty-message">
+          <i class="bi bi-inbox fs-3 d-block"></i>
+          No staff found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-<!-- 🪟 Modal -->
-<div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title" id="editStaffModalLabel">Change Staff Role & Payroll</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+<!-- ➕ Add Staff Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="addStaffModalLabel">
+          <i class="bi bi-person-plus"></i> Add New Staff
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <!-- Form -->
-      <form id="editStaffForm">
+      <form method="POST" action="/createStaff/">
+        {% csrf_token %}
         <div class="modal-body">
-          <!-- Staff Selection -->
           <div class="mb-3">
-            <label for="staffSelect" class="form-label">Staff Member</label>
-            <select class="form-select" id="staffSelect" required>
-              <option value="" disabled selected>-- Select Staff --</option>
-              <option value="1">John Doe</option>
-              <option value="2">Jane Smith</option>
-              <option value="3">Robert Brown</option>
-            </select>
+            <label class="form-label fw-semibold">Full Name</label>
+            <input type="text" class="form-control" name="staffName" placeholder="Enter full name" required>
           </div>
 
-          <!-- Role Selection -->
           <div class="mb-3">
-            <label for="roleSelect" class="form-label">Role</label>
-            <select class="form-select" id="roleSelect" required>
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" name="staffEmail" placeholder="example@mail.com" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Password</label>
+            <input type="password" class="form-control" id="staffPassword" name="password" placeholder="Enter password" required readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Role</label>
+            <select class="form-select" id="staffRole" name="role" required>
               <option value="" disabled selected>-- Select Role --</option>
               <option value="Manager">Manager</option>
               <option value="Receptionist">Receptionist</option>
               <option value="Housekeeping">Housekeeping</option>
               <option value="Chef">Chef</option>
+              <option value="Others">Others</option>
             </select>
           </div>
 
-          <!-- Payroll Input -->
           <div class="mb-3">
-            <label for="payrollInput" class="form-label">Payroll (MMK)</label>
-            <input type="number" class="form-control" id="payrollInput" placeholder="Enter payroll amount" required>
+            <label class="form-label fw-semibold">Payroll (MMK)</label>
+            <input type="number" class="form-control" id="payRoll" name="payRoll" placeholder="Enter payroll amount" required readonly>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="modal-footer">
+        <div class="modal-footer bg-light">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">💾 Save Changes</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check2-circle"></i> Create Staff
+          </button>
         </div>
       </form>
     </div>
@@ -126,16 +171,56 @@
 </div>
 
 <script>
-  const searchInput = document.getElementById('searchInput');
-//   const guestList = document.getElementById('guestList');
-//   const guests = guestList.getElementsByClassName('guest-item');
+const searchInput = document.getElementById('searchInput');
+const tableBody = document.getElementById('staffTableBody');
 
-  searchInput.addEventListener('keyup', () => {
-    const filter = searchInput.value.toLowerCase();
-    console.log(filter);
-    // Array.from(guests).forEach(guest => {
-    //   const name = guest.textContent.toLowerCase();
-    //   guest.style.display = name.includes(filter) ? '' : 'none';
-    // });
+searchInput.addEventListener('keyup', () => {
+  const filter = searchInput.value.toLowerCase();
+  const rows = tableBody.getElementsByTagName('tr');
+  Array.from(rows).forEach(row => {
+    const nameCell = row.getElementsByTagName('td')[1];
+    if (nameCell) {
+      const name = nameCell.textContent.toLowerCase();
+      row.style.display = name.includes(filter) ? '' : 'none';
+    }
   });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const roleSelect = document.getElementById('staffRole');
+  const passwordInput = document.getElementById('staffPassword');
+  const payrollInput = document.getElementById('payRoll');
+
+  roleSelect.addEventListener('change', function() {
+    const role = this.value;
+    let defaultPassword = '';
+    let defaultPayroll = '';
+
+    switch (role) {
+      case 'Manager':
+        defaultPassword = 'manager@123';
+        defaultPayroll = 800000;
+        break;
+      case 'Receptionist':
+        defaultPassword = 'receptionist@123';
+        defaultPayroll = 600000;
+        break;
+      case 'Housekeeping':
+        defaultPassword = 'housekeeping@123';
+        defaultPayroll = 500000;
+        break;
+      case 'Chef':
+        defaultPassword = 'chef@123';
+        defaultPayroll = 700000;
+        break;
+      case 'Others':
+        defaultPassword = 'other@123';
+        defaultPayroll = 600000;
+        break;
+    }
+
+    passwordInput.value = defaultPassword;
+    payrollInput.value = defaultPayroll;
+  });
+});
 </script>

@@ -1,13 +1,8 @@
 {% include './staffHeader.html' %}
 <style>
 .tableClass {
-  margin-left: 5%;
-  margin-right: 5%;
-  padding-left: 3%;
-  padding-right: 3%;
-  padding-top: 2%;
-  padding-bottom: 5%;
-  -webkit-box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+  margin: 5%;
+  padding: 3%;
   box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
 }
 </style>
@@ -16,9 +11,9 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold">🏨 Stay Management</h3>
-    <a href="/createStayPage/"><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStayModal">
-      ➕ Create Stay
-    </button></a>
+    <a href="/createStayPage/">
+      <button class="btn btn-primary">➕ Create Stay</button>
+    </a>
   </div>
 
   <!-- Search -->
@@ -55,8 +50,7 @@
           {% endif %}
         </td>
         <td>
-          <button class="btn btn-info btn-sm">View</button>
-          <button class="btn btn-danger btn-sm">Delete</button>
+          <button class="btn btn-success btn-sm" onclick="openEndStayModal('{{ stay.stayID }}')">End Stay</button>
         </td>
       </tr>
       {% empty %}
@@ -66,10 +60,38 @@
   </table>
 </div>
 
+<!-- 🪟 End Stay Modal -->
+<div class="modal fade" id="endStayModal" tabindex="-1" aria-labelledby="endStayModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="endStayModalLabel">🧾 End Stay - Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <h6 class="fw-bold mb-2">Services Used:</h6>
+        <ul id="serviceList" class="list-group mb-3">
+          <li class="list-group-item text-center text-muted">Loading services...</li>
+        </ul>
+
+        <h6 class="fw-bold mb-2">Orders Made:</h6>
+        <ul id="orderList" class="list-group">
+          <li class="list-group-item text-center text-muted">Loading orders...</li>
+        </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="confirmEndStay()">✅ Confirm End Stay</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-  // 🔍 Search Function
-  document.getElementById('searchInput').addEventListener('keyup', () => {
+  // Search Function
+  document.getElementById('searchInput').addEventListener('keyup', (event) => {
     const filter = event.target.value.toLowerCase();
     const rows = document.querySelectorAll("#stayTable tr");
     rows.forEach(row => {
@@ -77,4 +99,70 @@
       row.style.display = text.includes(filter) ? "" : "none";
     });
   });
+
+  // Modal logic
+  let selectedStayID = null;
+  const serviceList = document.getElementById("serviceList");
+  const orderList = document.getElementById("orderList");
+
+  async function openEndStayModal(stayID) {
+    selectedStayID = stayID;
+    const modal = new bootstrap.Modal(document.getElementById('endStayModal'));
+    modal.show();
+
+    // Clear old data
+    serviceList.innerHTML = `<li class="list-group-item text-center text-muted">Loading services...</li>`;
+    orderList.innerHTML = `<li class="list-group-item text-center text-muted">Loading orders...</li>`;
+
+    // Fetch data from APIs
+    const serviceRes = await fetch(`/api/stay/${stayID}/services`);
+    const services = await serviceRes.json();
+
+    const orderRes = await fetch(`/api/stay/${stayID}/orders`);
+    const orders = await orderRes.json();
+
+    // Display services
+    if (services.length > 0) {
+      serviceList.innerHTML = "";
+      services.forEach(s => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between";
+        li.innerHTML = `<span>${s.type}</span><span class="badge bg-primary">${s.status}</span>`;
+        serviceList.appendChild(li);
+      });
+    } else {
+      serviceList.innerHTML = `<li class="list-group-item text-center text-muted">No services found.</li>`;
+    }
+
+    // Display orders
+    if (orders.length > 0) {
+      orderList.innerHTML = "";
+      orders.forEach(o => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between";
+        li.innerHTML = `<span>#${o.orderID}</span> <ul>
+            ${o.menuItems.map(item => `
+              <li>${item.name} × ${item.qty} - ${item.price} Ks</li>
+            `).join('')}
+          </ul><span>$${o.amount}</span>`;
+        orderList.appendChild(li);
+      });
+    } else {
+      orderList.innerHTML = `<li class="list-group-item text-center text-muted">No orders found.</li>`;
+    }
+  }
+
+  async function confirmEndStay() {
+    if (!selectedStayID) return;
+
+    if (confirm("Are you sure you want to end this stay?")) {
+      const response = await fetch(`/endStay/${selectedStayID}`, { method: "POST" });
+      if (response.ok) {
+        alert("✅ Stay ended successfully!");
+        location.reload();
+      } else {
+        alert("❌ Failed to end stay.");
+      }
+    }
+  }
 </script>
