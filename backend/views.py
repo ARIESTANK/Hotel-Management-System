@@ -2,13 +2,13 @@ from django.shortcuts import render,redirect, get_object_or_404
 from django.http import HttpResponse
 import os
 import json
-from django.db.models import Count
+from django.db.models import Count,F,Sum
 from django.conf import settings
 # from .form import ImageUploadForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders,Services
+from backend.models import Staffs,Stays,Guests,Rooms,Menus,Bookings,Orders,Services,Transctions
 from backend.decorators  import managerSession_required,staffSession_required,guestSession_required,staySession_required,ChefSession_required
 from .serializers import StaffsSerializer,GuestsSerializer,RoomSerializer,StaysSerializer,ServiceSerializer,OrdersSerializer
 from django.views.decorators.http import require_POST
@@ -71,6 +71,19 @@ def authStay(request):
     except Stays.DoesNotExist:
         return Response({"message": "No Auth Stay"}, status=404)
 
+@api_view(['GET'])
+def roomTypeProfit(request):
+    # Join Rooms and Transactions through Stays
+    data = (
+        Transctions.objects
+        .select_related('stayID__roomID')
+        .values(roomType=F('stayID__roomID__type'))
+        .annotate(totalProfit=Sum('totalAmount'))
+        .order_by('roomType')
+    )
+
+    result = list(data)
+    return Response(result)
 
 #Room Type Descriptions
 @api_view(["GET"])
@@ -120,6 +133,26 @@ def stayOrderData(request,stayID):
     serviceData=Orders.objects.filter(stayID=stayID)
     serializer = OrdersSerializer(serviceData, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def totalAmount(request,stayID):
+    orders=Orders.objects.filter(stayID=stayID)
+    totalAmount=0
+    for order in orders:
+        totalAmount+=order.amount
+    services=Services.objects.filter(stayID=stayID)
+    stay=Stays.objects.get(pk=stayID)
+    room=stay.roomID
+    roomCode=f"{room.building}-{room.roomCode}"
+    duration=(stay.check_out-stay.check_in).days
+    duration+=1
+    totalAmount+=duration*room.price
+    return Response({
+        "totalAmount": totalAmount,
+        "roomAmount":duration*room.price,
+        "roomCode": roomCode,
+        "duration": duration
+    })
 
 #login page 
 def loginPage(request):
@@ -243,7 +276,11 @@ def dashboard(request):
     bookingCount=Bookings.objects.count()
     guestCount=Guests.objects.count()
     staffCount=Staffs.objects.count()
-    return render(request,"dashboard.html",{'bookings':bookings,'bookingCount':bookingCount,'staffCount':staffCount,'guestCount':guestCount})
+    totalProfit=0
+    transactions=Transctions.objects.all()
+    for transaction in transactions:
+        totalProfit+=transaction.totalAmount
+    return render(request,"dashboard.html",{'bookings':bookings,'bookingCount':bookingCount,'staffCount':staffCount,'guestCount':guestCount,'totalProfit':totalProfit})
 @managerSession_required('staff_ID')
 def roomList(request):
     roomList=Rooms.objects.all()
@@ -425,8 +462,6 @@ def deleteBooking(request,bookingID):
 def createStay(request,bookingID):
     bookingData=Bookings.objects.get(bookingID=bookingID)
     roomData = bookingData.roomID
-    roomData.status = "Unavailable"
-    roomData.save()
     createStay=Stays.objects.create(check_in=bookingData.checkIn,check_out=bookingData.checkOut,guestID=bookingData.guestID,roomID=bookingData.roomID,guestCount=bookingData.guestCount,status="Unpaid")
     createStay.save()
     bookingData.delete()
@@ -479,15 +514,18 @@ def changeState(request,orderID,state):
         return redirect('foodOrders')
 
 @managerSession_required('staff_ID')
-def createStay(request):
+def createStays(request):
     if request.method=="POST":
         guestEmail=request.POST.get("guestEmail")
         guestData=Guests.objects.filter(guestEmail=guestEmail).first()
         guestCount=request.POST.get("accomodation")
         roomID=request.POST.get("roomID")
         room = Rooms.objects.get(pk=roomID)
+        # return HttpResponse(room)
         check_in=request.POST.get("check_in")
         check_out=request.POST.get("check_out")
+        room.status="Unavailable"
+        room.save()
         createStay=Stays.objects.create(guestID=guestData,guestCount=guestCount,roomID=room,check_in=check_in,check_out=check_out,status="Unpaid")
         createStay.save()
     return redirect('stayList')
@@ -553,13 +591,27 @@ def serviceOrders(request):
     return render(request, 'serviceOrders.html', {'services': services})
 
 @managerSession_required('staff_ID')
-def endStay(request,stayID):
-    orders=Orders.objects.filter(stayID=stayID)
-    totalAmount=0
-    for order in orders:
-        totalAmount+=order.amount
-    orders.delete()
-    services=Services.objects.filter(stayID=stayID)
-    services.delete()
+def endStay(request):
+    if request.method == "POST":
+        stayID=request.POST.get("stayID")
+        totalAmount=request.POST.get("totalAmount")
+        paymentMethod=request.POST.get("paymentType")
+        staffID=request.session.get('staff_ID')
+        staffData=Staffs.objects.get(pk=staffID)
+        orders=Orders.objects.filter(stayID=stayID)
+        orders.delete()
 
-    ####ဆက်ရေးရန်
+        services=Services.objects.filter(stayID=stayID)
+        services.delete()
+        
+        stay=Stays.objects.get(pk=stayID)
+        stay.status="Paid"
+        stay.save()
+
+        room=stay.roomID
+        room.status="free"
+        room.save()
+        
+        transactionCreate=Transctions.objects.create(stayID_id=stayID,totalAmount=totalAmount,paymentMethod=paymentMethod,staffID=staffData)
+        transactionCreate.save()
+        return redirect('stayList')

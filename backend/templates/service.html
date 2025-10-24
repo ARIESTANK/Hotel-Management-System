@@ -156,7 +156,7 @@ async function fetchStaffs(serviceType) {
  
 
   try {
-    const response = await fetch(`http://192.168.100.11:8000/api/StaffByRole/${serviceType}`);
+    const response = await fetch(`/api/StaffByRole/${serviceType}`);
     const staffs = await response.json();
     console.log("Staffs fetched:", staffs);
 

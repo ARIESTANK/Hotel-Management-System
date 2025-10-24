@@ -50,7 +50,7 @@
   <div class="row text-center">
     <div class="col-md-3 mb-4">
       <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Housekeeping">
-        <div class="service-icon mb-2"><i class="bi bi-broom"></i></div>
+        <div class="service-icon mb-2"><i class="bi bi-house"></i></div>
         <h6>Housekeeping</h6>
       </div>
     </div>
@@ -63,9 +63,9 @@
     </div>
 
     <div class="col-md-3 mb-4">
-      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Food">
-        <div class="service-icon mb-2"><i class="bi bi-egg-fried"></i></div>
-        <h6>Food Order</h6>
+      <div class="service-card bg-light" data-bs-toggle="modal" data-bs-target="#serviceModal" data-service="Transport">
+        <div class="service-icon mb-2"><i class="bi bi-truck"></i></div>
+        <h6>Transport</h6>
       </div>
     </div>
 
@@ -96,8 +96,8 @@
 
           <div class="mb-3">
             <label class="form-label">Room Number</label>
-            <input type="hidden" class="form-control" id="roomID" name="roomID" readonly>
-            <input type="text" class="form-control" id="roomNumber"  readonly>
+            <input type="hidden" class="form-control" id="roomID" name="roomID">
+            <input type="text" class="form-control" id="roomNum" name="roomNumber"  readonly>
           </div>
 
           <div class="mb-3">
@@ -107,7 +107,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-custom w-100">Submit Request</button>
+          <button type="submit" id="submitButton" class="btn btn-custom w-100">Submit Request</button>
         </div>
       </form>
     </div>
@@ -129,13 +129,32 @@
   });
 
   async function fetchAuthStay() {
-    const response=await fetch('http://192.168.100.11:8000/api/authStays')
+    try{const response=await fetch('/api/authStays')
     const authStay=await response.json()
+    // console.log(`${authStay.room.building}-${authStay.room.roomCode}`)
     if(authStay){
-        document.getElementById('roomNumber').value=`${authStay.room.building}-${authStay.room.roomCode}`
+        const roomCode= `${authStay.room.building}-${authStay.room.roomCode}`
+        document.getElementById('roomNum').value=roomCode
         document.getElementById('roomID').value=`${authStay.roomID}`
+        // const roomNumber = document.getElementById("roomNumber").value;
+        // console.log(roomNumber)
+        const submitButton = document.getElementById("submitButton");
+        submitButton.disabled=false;
+        
+    }else{
+      console.log("No Auth Stay")
     }
+  }catch(error){
+    console.log(error)
+    const submitButton = document.getElementById("submitButton");
+    submitButton.disabled=true;
+  }
   }
   fetchAuthStay()
+
+
+  
+
+
 
 </script>

@@ -11,6 +11,8 @@ urlpatterns = [
     path('api/authStays',views.authStay,name="authStay"),
     path('api/stay/<int:stayID>/services',views.stayServiceData,name="stayServiceData"),
     path('api/stay/<int:stayID>/orders',views.stayOrderData,name="stayOrderData"),
+    path('api/totalAmount/<int:stayID>',views.totalAmount,name='totalAmount'),
+    path('api/roomTypeProfit/', views.roomTypeProfit,name="roomTypeProfit"),
     #file routing
     path('cssFile/',views.css_file,name="css_file"),
     path('js_File/', views.js_file, name='js_file'),
@@ -52,9 +54,9 @@ urlpatterns = [
     path('deleteBooking/<int:bookingID>',views.deleteBooking,name='deleteBooking'),
     path('createStay/<int:bookingID>',views.createStay,name='createStay'),
     path('changeState/<str:state>/<int:orderID>',views.changeState,name="changeState"),
-    path('createStay/',views.createStay,name="createStay"),
+    path('createStays/',views.createStays,name="createStays"),
     path('createRequest/',views.createRequest,name="createRequest"),
     path('createStaff/',views.createStaff,name="createStaff"),
     path('assignStaff/',views.assignStaff,name="assignStaff"),
-    path('endStay/<int:stayID>',views.endStay,name="endStay")
+    path('endStay/',views.endStay,name="endStay")
     ]

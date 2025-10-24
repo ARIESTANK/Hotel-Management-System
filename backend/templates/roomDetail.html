@@ -72,7 +72,7 @@
 <script>
 async function loadRooms() {
     try {
-        const response = await fetch('http://192.168.100.11:8000/api/roomsData');  // your Django API endpoint
+        const response = await fetch('/api/roomsData');  // your Django API endpoint
         const data = await response.json();
         const urlSegments = window.location.pathname.split('/');
         const roomType = urlSegments[2]; 

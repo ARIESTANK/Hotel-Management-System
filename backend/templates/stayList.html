@@ -45,13 +45,17 @@
         <td>
           {% if stay.check_out > today %}
           <span class="badge bg-danger">Time Out</span>
+          {% elif stay.status == "Paid" %}
+          <span class="badge bg-success">Paid</span>
           {% else %}
           <span class="badge bg-warning text-dark">Pending</span>
           {% endif %}
         </td>
+        {% if stay.status != "Paid" %}
         <td>
           <button class="btn btn-success btn-sm" onclick="openEndStayModal('{{ stay.stayID }}')">End Stay</button>
         </td>
+        {% endif %}
       </tr>
       {% empty %}
       <tr><td colspan="7" class="text-muted">No stays found.</td></tr>
@@ -61,15 +65,25 @@
 </div>
 
 <!-- 🪟 End Stay Modal -->
+ <form action="/endStay/" method="post">
+  {% csrf_token %}
 <div class="modal fade" id="endStayModal" tabindex="-1" aria-labelledby="endStayModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="endStayModalLabel">🧾 End Stay - Details</h5>
+        <input type="hidden"  name="stayID" id="stayID">
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
       <div class="modal-body">
+        <div class="card shadow-sm border-0 rounded-4 mt-3">
+        <div class="card-header fw-bold">
+          <i class="bi bi-door-closed me-2"></i> Room Information
+        </div>
+        <div class="card-body" id="roomData">
+          <p class="text-center text-muted">Loading Room Data...</p>
+        </div>
+      </div>
         <h6 class="fw-bold mb-2">Services Used:</h6>
         <ul id="serviceList" class="list-group mb-3">
           <li class="list-group-item text-center text-muted">Loading services...</li>
@@ -79,6 +93,38 @@
         <ul id="orderList" class="list-group">
           <li class="list-group-item text-center text-muted">Loading orders...</li>
         </ul>
+        <div class="card mt-4 border-0 shadow-sm rounded-4 text-center">
+        <div class="card-body">
+          <h5 class="fw-bold text-success mb-2">
+            <i class="bi bi-cash-coin me-2"></i> Total Charges
+            <input type="hidden" name="totalAmount" id="totalCharge">
+          </h5>
+          <h2 id="totalAmount" class="fw-bolder text-primary mb-0"></h2>
+          <small class="text-muted fst-italic">Includes room, services, and orders</small>
+        </div>
+      </div>
+      <div class="card mt-3 border-0 shadow-sm rounded-4">
+      <!-- 💳 Payment Type Selection -->
+      <div class="card mt-3 border-0 shadow-sm rounded-4">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-wallet2 me-2 text-primary"></i> Payment Type
+          </h6>
+          <select id="paymentType" name="paymentType" class="form-select form-select-lg border-primary shadow-sm">
+            <option value="" selected disabled>-- Select Payment Type --</option>
+            <option value="Cash">💵 Cash</option>
+            <option value="Credit Card">💳 Credit Card</option>
+            <option value="Electronic Payment">📱 Electronic Payment</option>
+            <option value="Others">⋯ Others</option>
+          </select>
+
+          <!-- Optional: appear only when "Others" is selected -->
+          <div id="otherPaymentDiv" class="mt-3 d-none">
+            <input type="text" id="otherPaymentText" class="form-control" placeholder="Specify other payment type...">
+          </div>
+        </div>
+      </div>
+
       </div>
 
       <div class="modal-footer">
@@ -88,6 +134,8 @@
     </div>
   </div>
 </div>
+</div>
+</form>
 
 <script>
   // Search Function
@@ -109,7 +157,7 @@
     selectedStayID = stayID;
     const modal = new bootstrap.Modal(document.getElementById('endStayModal'));
     modal.show();
-
+    document.getElementById('stayID').value=stayID;
     // Clear old data
     serviceList.innerHTML = `<li class="list-group-item text-center text-muted">Loading services...</li>`;
     orderList.innerHTML = `<li class="list-group-item text-center text-muted">Loading orders...</li>`;
@@ -120,6 +168,33 @@
 
     const orderRes = await fetch(`/api/stay/${stayID}/orders`);
     const orders = await orderRes.json();
+
+    const roomRes=await fetch(`/api/totalAmount/${stayID}`);
+    const roomData=await roomRes.json()
+    
+    if (roomData) {
+      document.getElementById('totalAmount').innerText=roomData.totalAmount
+      document.getElementById('totalCharge').value=roomData.totalAmount
+        document.getElementById('roomData').innerHTML = `
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-door-open me-2 text-primary"></i> Room Code</span>
+              <span class="fw-semibold">${roomData.roomCode}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-clock-history me-2 text-warning"></i> Stay Duration</span>
+              <span class="fw-semibold">${roomData.duration} days</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-cash-coin me-2 text-success"></i> Total Amount</span>
+              <span class="fw-semibold">$${roomData.roomAmount}</span>
+            </li>
+          </ul>
+        `;
+      } else {
+        document.getElementById('roomData').innerHTML =
+          `<p class="text-center text-danger">No room data found.</p>`;
+      }
 
     // Display services
     if (services.length > 0) {
@@ -152,17 +227,4 @@
     }
   }
 
-  async function confirmEndStay() {
-    if (!selectedStayID) return;
-
-    if (confirm("Are you sure you want to end this stay?")) {
-      const response = await fetch(`/endStay/${selectedStayID}`, { method: "POST" });
-      if (response.ok) {
-        alert("✅ Stay ended successfully!");
-        location.reload();
-      } else {
-        alert("❌ Failed to end stay.");
-      }
-    }
-  }
 </script>

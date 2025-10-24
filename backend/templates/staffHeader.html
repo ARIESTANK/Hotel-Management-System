@@ -60,7 +60,7 @@
 
   <script>
   async function fetchAuthUser() {
-    const response=await fetch('http://192.168.100.11:8000/api/authStaff')
+    const response=await fetch('/api/authStaff')
     const staffData=await response.json()
     console.log(staffData)
     if(staffData){

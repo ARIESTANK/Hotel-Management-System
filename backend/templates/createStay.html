@@ -18,7 +18,7 @@
 <div class="container-box">
   <h3 class="form-title text-center text-primary">🏨 Create New Stay</h3>
 
-  <form method="POST" action="/createStay/" id="createStayForm">
+  <form method="POST" action="/createStays/" id="createStayForm">
     {% csrf_token %}
 
     <!-- Guest -->
@@ -99,7 +99,7 @@ async function logSelection() {
 
   // Only log if both are selected
   if (type && size) {
-    const response=await fetch(`http://192.168.100.11:8000/api/rooms/${size}/${type}`)
+    const response=await fetch(`/api/rooms/${size}/${type}`)
     if(response){
         const data=await response.json()
         document.getElementById('roomCode').innerHTML=""

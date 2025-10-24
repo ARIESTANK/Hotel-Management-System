@@ -179,7 +179,7 @@ async function setBookingID(roomID,guestCount,roomType){
     document.getElementById('modalBookingID').value=`${roomID}`
   
     // room section-box
-    const response=await fetch(`http://192.168.100.11:8000/api/rooms/${guestCount}/${roomType}`)
+    const response=await fetch(`/api/rooms/${guestCount}/${roomType}`)
     const rooms=await response.json()
     rooms.forEach(room => {
       document.getElementById('roomSelect').innerHTML+=`<option value=${ room.roomID }>${ room.building } - ${room.roomCode} </option>`

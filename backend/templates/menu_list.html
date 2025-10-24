@@ -72,7 +72,7 @@
     {% empty %}
     <p class="text-muted">No menu items found.</p>
     {% endfor %}
-    <button class="btn btn-primary rounded-circle position-fixed shadow" style="bottom: 30px; right: 30px; width: 60px; height: 60px; font-size: 22px;" data-bs-toggle="modal" data-bs-target="#cartModal">
+    <button id="cartOpen" class="btn btn-primary rounded-circle position-fixed shadow" style="bottom: 30px; right: 30px; width: 60px; height: 60px; font-size: 22px;" data-bs-toggle="modal" data-bs-target="#cartModal">
       🛒
       <span id="floating-cart-count"
             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -174,5 +174,23 @@ function updateCart() {
   const cartInput = document.getElementById("cart-data");
   cartInput.value = JSON.stringify(cart);
 });
+
+async function fetchAuthStay() {
+  const cartOpenButton=document.getElementById('cartOpen')
+    try{const response=await fetch('/api/authStays')
+    const authStay=await response.json()
+    if(authStay){
+        cartOpenButton.disabled=false;
+    }else{
+      console.log("No Auth Stay")
+    }
+  }catch(error){
+    console.log(error)
+    cartOpenButton.disabled=true;
+  }
+  }
+  fetchAuthStay()
+
+
 }
 </script>

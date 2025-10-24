@@ -87,7 +87,7 @@
     <div class="col-md-3 col-sm-6">
       <div class="stat-card">
         <div>
-          <h5>$8,420</h5>
+          <h5>${{totalProfit}}</h5>
           <span>Total Revenue</span>
         </div>
         <i class="bi bi-currency-dollar"></i>
@@ -96,10 +96,15 @@
   </div>
 
   <!-- 📈 Graph Section Placeholder -->
-  <div class="section-box">
-    <h5 class="fw-bold mb-3">📈 Revenue Overview</h5>
-    <div class="text-center p-5 bg-light rounded">
-      <p class="text-muted mb-0">[ Graph goes here — integrate Chart.js or any graph library ]</p>
+    <div class="section-box">
+      <h5 class="fw-bold mb-3">📈 Revenue Overview</h5>
+      <div class="text-center p-5 bg-light rounded">
+        <div class="container mt-5">
+    <div class="card shadow-sm p-4">
+      <h4 class="fw-bold mb-4 text-center">📈 Total Profit by Room Type</h4>
+      <canvas id="profitChart" height="100"></canvas>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -222,7 +227,7 @@
     document.getElementById('modalBookingID').value=`${roomID}`
   
     // room section-box
-    const response=await fetch(`http://192.168.100.11:8000/api/rooms/${guestCount}/${roomType}`)
+    const response=await fetch(`/api/rooms/${guestCount}/${roomType}`)
     const rooms=await response.json()
     rooms.forEach(room => {
       document.getElementById('roomSelect').innerHTML+=`<option value=${ room.roomID }>${ room.building } - ${room.roomCode} </option>`
@@ -260,5 +265,54 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+async function loadRoomTypeProfit() {
+    const response = await fetch('/api/roomTypeProfit/');
+    const data = await response.json();
 
+    const labels = data.map(item => item.roomType);
+    const profits = data.map(item => item.totalProfit);
+
+    const ctx = document.getElementById('profitChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Profit (Ks)',
+          data: profits,
+          fill: false,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.3)',
+          tension: 0.3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `Ks ${context.formattedValue}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Room Type' }
+          },
+          y: {
+            title: { display: true, text: 'Total Profit (Ks)' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  loadRoomTypeProfit();
 </script>
