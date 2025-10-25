@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/stay/<int:stayID>/orders',views.stayOrderData,name="stayOrderData"),
     path('api/totalAmount/<int:stayID>',views.totalAmount,name='totalAmount'),
     path('api/roomTypeProfit/', views.roomTypeProfit,name="roomTypeProfit"),
+    path('api/paymentMethodRevenue/',views.paymentMethodRevenue,name="paymentMethodRevenue"),
     #file routing
     path('cssFile/',views.css_file,name="css_file"),
     path('js_File/', views.js_file, name='js_file'),
@@ -58,5 +59,10 @@ urlpatterns = [
     path('createRequest/',views.createRequest,name="createRequest"),
     path('createStaff/',views.createStaff,name="createStaff"),
     path('assignStaff/',views.assignStaff,name="assignStaff"),
-    path('endStay/',views.endStay,name="endStay")
+    path('endStay/',views.endStay,name="endStay"),
+    path('deleteGuest/<int:guestID>',views.deleteGuest,name="deleteGuest"),
+    path('updateRoom/',views.updateRoom,name="updateRoom"),
+    path('deleteRoom/<int:roomID>/',views.deleteRoom,name="deleteRoom"),
+    path('updateStaff/',views.updateStaff,name="updateStaff"),
+    path('deleteStaff/<int:staffID>/',views.deleteStaff,name="deleteStaff"),
     ]

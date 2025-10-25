@@ -1,230 +1,241 @@
 {% include './staffHeader.html' %}
 <style>
 .tableClass {
-  margin: 5%;
-  padding: 3%;
-  box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.86);
+  margin: 3% auto;
+  padding: 2%;
+  border-radius: 20px;
+  box-shadow: 1px 3px 18px 2px rgba(0,0,0,0.15);
+  background-color: #fff;
+  max-width: 95%;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .tableClass {
+    margin: 2%;
+    padding: 1%;
+  }
+
+  h3.fw-bold {
+    font-size: 1.2rem;
+  }
+
+  .table th, .table td {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  #searchInput {
+    font-size: 0.85rem;
+  }
 }
 </style>
 
-<div class="mt-5 tableClass">
+<div class="mt-4 tableClass">
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="fw-bold">🏨 Stay Management</h3>
-    <a href="/createStayPage/">
-      <button class="btn btn-primary">➕ Create Stay</button>
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold text-primary mb-2 mb-md-0">🏨 Stay Management</h3>
+    <a href="/createStayPage/" class="text-decoration-none">
+      <button class="btn btn-primary btn-sm px-3">
+        ➕ Create Stay
+      </button>
     </a>
   </div>
 
   <!-- Search -->
   <div class="mb-3">
-    <input type="text" id="searchInput" class="form-control" placeholder="Search guest or room...">
+    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search guest or room...">
   </div>
 
-  <!-- Stay Table -->
-  <table class="table table-striped table-hover">
-    <thead class="table-dark text-center">
-      <tr>
-        <th>Stay ID</th>
-        <th>Guest Name</th>
-        <th>Room Code</th>
-        <th>Check-In</th>
-        <th>Check-Out</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody class="text-center" id="stayTable">
-      {% for stay in stays %}
-      <tr>
-        <td>{{ stay.stayID }}</td>
-        <td>{{ stay.guestID.guestName }}</td>
-        <td>{{stay.roomID.building}}-{{ stay.roomID.roomCode }}</td>
-        <td>{{ stay.check_in }}</td>
-        <td>{{ stay.check_out }}</td>
-        <td>
-          {% if stay.check_out > today %}
-          <span class="badge bg-danger">Time Out</span>
-          {% elif stay.status == "Paid" %}
-          <span class="badge bg-success">Paid</span>
-          {% else %}
-          <span class="badge bg-warning text-dark">Pending</span>
+  <!-- Responsive Table -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>Stay ID</th>
+          <th>Guest Name</th>
+          <th>Room Code</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="stayTable">
+        {% for stay in stays %}
+        <tr>
+          <td>{{ stay.stayID }}</td>
+          <td>{{ stay.guestID.guestName }}</td>
+          <td>{{ stay.roomID.building }}-{{ stay.roomID.roomCode }}</td>
+          <td>{{ stay.check_in }}</td>
+          <td>{{ stay.check_out }}</td>
+          <td>
+            {% if stay.check_out > today %}
+              <span class="badge bg-danger">Time Out</span>
+            {% elif stay.status == "Paid" %}
+              <span class="badge bg-success">Paid</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+          </td>
+          {% if stay.status != "Paid" %}
+          <td>
+            <button class="btn btn-success btn-sm" onclick="openEndStayModal('{{ stay.stayID }}')">
+              End Stay
+            </button>
+          </td>
           {% endif %}
-        </td>
-        {% if stay.status != "Paid" %}
-        <td>
-          <button class="btn btn-success btn-sm" onclick="openEndStayModal('{{ stay.stayID }}')">End Stay</button>
-        </td>
-        {% endif %}
-      </tr>
-      {% empty %}
-      <tr><td colspan="7" class="text-muted">No stays found.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-muted py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+            No stays found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<!-- 🪟 End Stay Modal -->
- <form action="/endStay/" method="post">
+<!-- End Stay Modal -->
+<form action="/endStay/" method="post">
   {% csrf_token %}
-<div class="modal fade" id="endStayModal" tabindex="-1" aria-labelledby="endStayModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="endStayModalLabel">🧾 End Stay - Details</h5>
-        <input type="hidden"  name="stayID" id="stayID">
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="card shadow-sm border-0 rounded-4 mt-3">
-        <div class="card-header fw-bold">
-          <i class="bi bi-door-closed me-2"></i> Room Information
+  <div class="modal fade" id="endStayModal" tabindex="-1" aria-labelledby="endStayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header bg-primary text-white rounded-top-4">
+          <h5 class="modal-title fw-semibold" id="endStayModalLabel">🧾 End Stay - Details</h5>
+          <input type="hidden" name="stayID" id="stayID">
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="card-body" id="roomData">
-          <p class="text-center text-muted">Loading Room Data...</p>
-        </div>
-      </div>
-        <h6 class="fw-bold mb-2">Services Used:</h6>
-        <ul id="serviceList" class="list-group mb-3">
-          <li class="list-group-item text-center text-muted">Loading services...</li>
-        </ul>
 
-        <h6 class="fw-bold mb-2">Orders Made:</h6>
-        <ul id="orderList" class="list-group">
-          <li class="list-group-item text-center text-muted">Loading orders...</li>
-        </ul>
-        <div class="card mt-4 border-0 shadow-sm rounded-4 text-center">
-        <div class="card-body">
-          <h5 class="fw-bold text-success mb-2">
-            <i class="bi bi-cash-coin me-2"></i> Total Charges
-            <input type="hidden" name="totalAmount" id="totalCharge">
-          </h5>
-          <h2 id="totalAmount" class="fw-bolder text-primary mb-0"></h2>
-          <small class="text-muted fst-italic">Includes room, services, and orders</small>
-        </div>
-      </div>
-      <div class="card mt-3 border-0 shadow-sm rounded-4">
-      <!-- 💳 Payment Type Selection -->
-      <div class="card mt-3 border-0 shadow-sm rounded-4">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3">
-            <i class="bi bi-wallet2 me-2 text-primary"></i> Payment Type
-          </h6>
-          <select id="paymentType" name="paymentType" class="form-select form-select-lg border-primary shadow-sm">
-            <option value="" selected disabled>-- Select Payment Type --</option>
-            <option value="Cash">💵 Cash</option>
-            <option value="Credit Card">💳 Credit Card</option>
-            <option value="Electronic Payment">📱 Electronic Payment</option>
-            <option value="Others">⋯ Others</option>
-          </select>
+        <div class="modal-body">
+          <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-header fw-bold bg-light">
+              <i class="bi bi-door-closed me-2 text-primary"></i> Room Information
+            </div>
+            <div class="card-body" id="roomData">
+              <p class="text-center text-muted">Loading Room Data...</p>
+            </div>
+          </div>
 
-          <!-- Optional: appear only when "Others" is selected -->
-          <div id="otherPaymentDiv" class="mt-3 d-none">
-            <input type="text" id="otherPaymentText" class="form-control" placeholder="Specify other payment type...">
+          <h6 class="fw-bold mb-2">Services Used:</h6>
+          <ul id="serviceList" class="list-group mb-3">
+            <li class="list-group-item text-center text-muted">Loading services...</li>
+          </ul>
+
+          <h6 class="fw-bold mb-2">Orders Made:</h6>
+          <ul id="orderList" class="list-group mb-3">
+            <li class="list-group-item text-center text-muted">Loading orders...</li>
+          </ul>
+
+          <div class="card mt-3 border-0 shadow-sm rounded-4 text-center">
+            <div class="card-body">
+              <h5 class="fw-bold text-success mb-2">
+                <i class="bi bi-cash-coin me-2"></i> Total Charges
+                <input type="hidden" name="totalAmount" id="totalCharge">
+              </h5>
+              <h2 id="totalAmount" class="fw-bolder text-primary mb-0"></h2>
+              <small class="text-muted fst-italic">Includes room, services, and orders</small>
+            </div>
+          </div>
+
+          <div class="card mt-3 border-0 shadow-sm rounded-4">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">
+                <i class="bi bi-wallet2 me-2 text-primary"></i> Payment Type
+              </h6>
+              <select id="paymentType" name="paymentType" class="form-select form-select-lg border-primary shadow-sm">
+                <option value="" selected disabled>-- Select Payment Type --</option>
+                <option value="Cash">💵 Cash</option>
+                <option value="Credit Card">💳 Credit Card</option>
+                <option value="Electronic Payment">📱 Electronic Payment</option>
+                <option value="Others">⋯ Others</option>
+              </select>
+
+              <div id="otherPaymentDiv" class="mt-3 d-none">
+                <input type="text" id="otherPaymentText" class="form-control" placeholder="Specify other payment type...">
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success" onclick="confirmEndStay()">✅ Confirm End Stay</button>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success">✅ Confirm End Stay</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
 </form>
 
 <script>
-  // Search Function
-  document.getElementById('searchInput').addEventListener('keyup', (event) => {
-    const filter = event.target.value.toLowerCase();
-    const rows = document.querySelectorAll("#stayTable tr");
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? "" : "none";
-    });
+// 🔍 Search Function
+document.getElementById('searchInput').addEventListener('keyup', (event) => {
+  const filter = event.target.value.toLowerCase();
+  document.querySelectorAll("#stayTable tr").forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
   });
+});
 
-  // Modal logic
-  let selectedStayID = null;
+// 🪟 Open End Stay Modal
+async function openEndStayModal(stayID) {
+  document.getElementById('stayID').value = stayID;
+  const modal = new bootstrap.Modal(document.getElementById('endStayModal'));
+  modal.show();
+
   const serviceList = document.getElementById("serviceList");
   const orderList = document.getElementById("orderList");
 
-  async function openEndStayModal(stayID) {
-    selectedStayID = stayID;
-    const modal = new bootstrap.Modal(document.getElementById('endStayModal'));
-    modal.show();
-    document.getElementById('stayID').value=stayID;
-    // Clear old data
-    serviceList.innerHTML = `<li class="list-group-item text-center text-muted">Loading services...</li>`;
-    orderList.innerHTML = `<li class="list-group-item text-center text-muted">Loading orders...</li>`;
+  serviceList.innerHTML = `<li class="list-group-item text-center text-muted">Loading services...</li>`;
+  orderList.innerHTML = `<li class="list-group-item text-center text-muted">Loading orders...</li>`;
 
-    // Fetch data from APIs
-    const serviceRes = await fetch(`/api/stay/${stayID}/services`);
+  try {
+    const [serviceRes, orderRes, roomRes] = await Promise.all([
+      fetch(`/api/stay/${stayID}/services`),
+      fetch(`/api/stay/${stayID}/orders`),
+      fetch(`/api/totalAmount/${stayID}`)
+    ]);
+
     const services = await serviceRes.json();
-
-    const orderRes = await fetch(`/api/stay/${stayID}/orders`);
     const orders = await orderRes.json();
+    const roomData = await roomRes.json();
 
-    const roomRes=await fetch(`/api/totalAmount/${stayID}`);
-    const roomData=await roomRes.json()
-    
+    // Room info
     if (roomData) {
-      document.getElementById('totalAmount').innerText=roomData.totalAmount
-      document.getElementById('totalCharge').value=roomData.totalAmount
-        document.getElementById('roomData').innerHTML = `
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-door-open me-2 text-primary"></i> Room Code</span>
-              <span class="fw-semibold">${roomData.roomCode}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-clock-history me-2 text-warning"></i> Stay Duration</span>
-              <span class="fw-semibold">${roomData.duration} days</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-cash-coin me-2 text-success"></i> Total Amount</span>
-              <span class="fw-semibold">$${roomData.roomAmount}</span>
-            </li>
-          </ul>
-        `;
-      } else {
-        document.getElementById('roomData').innerHTML =
-          `<p class="text-center text-danger">No room data found.</p>`;
-      }
-
-    // Display services
-    if (services.length > 0) {
-      serviceList.innerHTML = "";
-      services.forEach(s => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between";
-        li.innerHTML = `<span>${s.type}</span><span class="badge bg-primary">${s.status}</span>`;
-        serviceList.appendChild(li);
-      });
-    } else {
-      serviceList.innerHTML = `<li class="list-group-item text-center text-muted">No services found.</li>`;
+      document.getElementById('totalAmount').innerText = roomData.totalAmount;
+      document.getElementById('totalCharge').value = roomData.totalAmount;
+      document.getElementById('roomData').innerHTML = `
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between"><span>Room Code</span><span>${roomData.roomCode}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Stay Duration</span><span>${roomData.duration} days</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Total Amount</span><span>${roomData.roomAmount} Ks</span></li>
+        </ul>`;
     }
 
-    // Display orders
-    if (orders.length > 0) {
-      orderList.innerHTML = "";
-      orders.forEach(o => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between";
-        li.innerHTML = `<span>#${o.orderID}</span> <ul>
-            ${o.menuItems.map(item => `
-              <li>${item.name} × ${item.qty} - ${item.price} Ks</li>
-            `).join('')}
-          </ul><span>$${o.amount}</span>`;
-        orderList.appendChild(li);
-      });
-    } else {
-      orderList.innerHTML = `<li class="list-group-item text-center text-muted">No orders found.</li>`;
-    }
+    // Services
+    serviceList.innerHTML = services.length
+      ? services.map(s => `<li class="list-group-item d-flex justify-content-between"><span>${s.type}</span><span class="badge bg-primary">${s.status}</span></li>`).join("")
+      : `<li class="list-group-item text-center text-muted">No services found.</li>`;
+
+    // Orders
+    orderList.innerHTML = orders.length
+      ? orders.map(o => `
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>#${o.orderID}</span><span>${o.amount} Ks</span>
+          </div>
+          <ul class="mt-2">${o.menuItems.map(i => `<li>${i.name} × ${i.qty} - ${i.price} Ks</li>`).join('')}</ul>
+        </li>`).join("")
+      : `<li class="list-group-item text-center text-muted">No orders found.</li>`;
+  } catch (error) {
+    console.error("Error loading stay details:", error);
   }
-
+}
 </script>

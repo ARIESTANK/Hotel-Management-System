@@ -87,9 +87,10 @@
             <!-- <button class="btn btn-success btn-sm" title="Approve Guest">
               <i class="bi bi-check-circle-fill"></i>
             </button> -->
-            <button class="btn btn-danger btn-sm" title="Delete Guest">
+            <a href="/deleteGuest/{{guest.guestID}}"><button class="btn btn-danger btn-sm" title="Delete Guest">
               <i class="bi bi-trash-fill"></i>
             </button>
+            </a>
           </td>
         </tr>
         {% empty %}

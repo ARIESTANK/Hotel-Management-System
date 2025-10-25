@@ -154,6 +154,16 @@ def totalAmount(request,stayID):
         "duration": duration
     })
 
+@api_view(['GET'])
+def paymentMethodRevenue(request):
+    data = (
+        Transctions.objects
+        .values('paymentMethod')
+        .annotate(total=Sum('totalAmount'))
+        .order_by('paymentMethod')
+    )
+    return Response(list(data))
+
 #login page 
 def loginPage(request):
     return render(request,'login.html')
@@ -451,9 +461,9 @@ def acceptBooking(request):
 @managerSession_required('staff_ID')
 def deleteBooking(request,bookingID):
     bookingData=Bookings.objects.get(bookingID=bookingID)
-    roomData = bookingData.roomID
-    roomData.status = "free"
-    roomData.save()
+    # roomData = bookingData.roomID
+    # roomData.status = "free"
+    # roomData.save()
     bookingData.delete()
 
     return redirect("bookingList")
@@ -462,6 +472,8 @@ def deleteBooking(request,bookingID):
 def createStay(request,bookingID):
     bookingData=Bookings.objects.get(bookingID=bookingID)
     roomData = bookingData.roomID
+    roomData.status="Unavailable"
+    roomData.save()
     createStay=Stays.objects.create(check_in=bookingData.checkIn,check_out=bookingData.checkOut,guestID=bookingData.guestID,roomID=bookingData.roomID,guestCount=bookingData.guestCount,status="Unpaid")
     createStay.save()
     bookingData.delete()
@@ -615,3 +627,75 @@ def endStay(request):
         transactionCreate=Transctions.objects.create(stayID_id=stayID,totalAmount=totalAmount,paymentMethod=paymentMethod,staffID=staffData)
         transactionCreate.save()
         return redirect('stayList')
+
+@managerSession_required('staff_ID')
+def deleteGuest(request, guestID):
+    guestData = Guests.objects.get(pk=guestID)
+    stayList = Stays.objects.filter(guestID=guestID, status="Unpaid")
+
+    for stay in stayList:
+        Orders.objects.filter(stayID=stay.stayID).delete()
+        Services.objects.filter(stayID=stay.stayID).delete()
+
+        room = stay.roomID
+        room.status = "free"
+        room.save()
+
+        stay.delete()
+
+    guestData.delete()
+    return redirect('guests')
+
+@managerSession_required('staff_ID')
+def deleteRoom(request,roomID):
+    updateRoom=Rooms.objects.get(pk=roomID)
+    updateRoom.delete()
+    return redirect('roomsList')
+
+@managerSession_required('staff_ID')
+def updateRoom(request):
+    if request.method == "POST":
+        roomID=request.POST.get('roomID')
+        roomCode=request.POST.get('roomCode')
+        building=request.POST.get('building')
+        accomodation=request.POST.get('accomodation')
+        roomType=request.POST.get('roomType')
+        price=request.POST.get('price')
+
+        updateRoom=Rooms.objects.get(pk=roomID)
+        updateRoom.roomCode=roomCode
+        updateRoom.roomType=roomType
+        updateRoom.accomodation=accomodation
+        updateRoom.building=building
+        updateRoom.price=price
+
+        updateRoom.save()
+        return redirect('roomsList')
+    
+@managerSession_required('staff_ID')
+def deleteStaff(request,staffID):
+    updateStaff=Staffs.objects.get(pk=staffID)
+    updateStaff.delete()
+    return redirect('staffList')
+
+@managerSession_required('staff_ID')
+def updateStaff(request):
+    if request.method == "POST":
+        staffID=request.POST.get('staffID')
+        staffName=request.POST.get('staffName')
+        staffEmail=request.POST.get('staffEmail')
+        role=request.POST.get('role')
+        payRoll=request.POST.get('payRoll')
+        status=request.POST.get('status')
+        password=request.POST.get("password")
+
+        updateStaff=Staffs.objects.get(pk=staffID)
+        updateStaff.staffName=staffName
+        updateStaff.staffEmail=staffEmail
+        updateStaff.role=role
+        updateStaff.payRoll=payRoll
+        updateStaff.status=status
+        updateStaff.password=password
+
+        updateStaff.save()
+        return redirect('staffs')
